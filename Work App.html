@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>FIRM</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+    body { font-family: 'DM Sans', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+const { useState, useEffect, useRef, createContext, useContext } = React;
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ══ STORAGE LAYER - tries window.storage, falls back      ══ */
+/* ═══════════════════════════════════════════════════════════ */
+const STORE_KEY = "counseltrack_data";
+const LOGO_LIGHT = "data:image/png;base64,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";
+const LOGO_DARK = "data:image/png;base64,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";
+
+async function storageSet(data) {
+  const json = JSON.stringify(data);
+  try { localStorage.setItem(STORE_KEY, json); return true; } catch(e) {}
+  return false;
+}
+
+async function storageGet() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ══ CONFIG                                                 ══ */
+/* ═══════════════════════════════════════════════════════════ */
+const STATUSES = {
+  active:   { label: "Active",   color: "#FF3B30", icon: "○" },
+  hold:     { label: "Hold",     color: "#FFCC00", icon: "◷" },
+  complete: { label: "Complete", color: "#30D158", icon: "●" },
+};
+
+/* ── Themes ── */
+const T = {
+  light: {
+    bg:"#F4F5F0", card:"#fff", card2:"#FAFAF8", hdr:"#2E3650",
+    tx:"#1A1A2E", tx2:"#7A7F94", tx3:"#A8ACBA",
+    brd:"#E2E4EA", brd2:"#EDEDEB", brd3:"#E6E7E3",
+    cardShadow:"0 2px 8px rgba(0,0,0,0.07)", cardShadowOverdue:"0 2px 8px rgba(255,59,48,0.12)",
+    cardBorder:"1px solid #DCDEE4",
+    chip:"#E8E9EE", chipA:"#1A1A2E", chipTx:"#666", chipTxA:"#fff",
+    tab:"#fff", tabBrd:"#E2E4EA", tabA:"#1A1A2E", tabI:"#A8ACBA",
+    inp:"#DCDEE4", inpBg:"#fff",
+    btn:"#2E3650", btnTx:"#fff", btn2:"#EDEEF2", btn2Tx:"#555",
+    sheet:"#fff", overlay:"rgba(0,0,0,0.4)",
+    accent:"#4A5580",
+    hdrSub:"#8B8FB0", hdrNum:"#fff",
+    danger:"#FFF0F0", dangerTx:"#FF3B30",
+    togOff:"#D0D3DA", togOn:"#30D158", togThumb:"#fff",
+    overdue:"#FFF5F5",
+  },
+  dark: {
+    bg:"#0C1021", card:"#141830", card2:"#181C38", hdr:"#0C1021",
+    tx:"#D8DCED", tx2:"#6E78A0", tx3:"#4A5278",
+    brd:"#1E2440", brd2:"#1A1E38", brd3:"#161A32",
+    cardShadow:"0 0 0 1px rgba(100,130,255,0.08)", cardShadowOverdue:"0 0 0 1px rgba(217,79,67,0.3)",
+    cardBorder:"1px solid #222848",
+    chip:"#181C38", chipA:"#8B9AE0", chipTx:"#6E78A0", chipTxA:"#fff",
+    tab:"#101428", tabBrd:"#1E2440", tabA:"#D8DCED", tabI:"#4A5278",
+    inp:"#1E2440", inpBg:"#141830",
+    btn:"#8B9AE0", btnTx:"#0C1021", btn2:"#181C38", btn2Tx:"#8B9AE0",
+    sheet:"#141830", overlay:"rgba(0,0,0,0.6)",
+    accent:"#8B9AE0",
+    hdrSub:"#4A5278", hdrNum:"#D8DCED",
+    danger:"#1A0A10", dangerTx:"#FF3B30",
+    togOff:"#1E2440", togOn:"#30D158", togThumb:"#D8DCED",
+    overdue:"#1A0A10",
+  },
+};
+
+const Ctx = createContext(T.light);
+const useT = () => useContext(Ctx);
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ══ UTILITIES                                              ══ */
+/* ═══════════════════════════════════════════════════════════ */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+
+function daysUntil(d) {
+  if (!d || d==="N/A") return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((new Date(d+"T00:00:00") - now) / 86400000);
+}
+
+function DueBadge({ date }) {
+  if (date==="N/A") return <span style={{ color:"#999",fontWeight:500,fontSize:10,fontFamily:"'JetBrains Mono',monospace" }}>N/A</span>;
+  const d = daysUntil(date);
+  if (d === null) return null;
+  let c = "#6B7C8A";
+  let l;
+  if (d < 0) { c = "#FF3B30"; l = `${Math.abs(d)}d ago`; }
+  else if (d === 0) { c = "#FF3B30"; l = "Today"; }
+  else if (d === 1) { c = "#B8860B"; l = "Tmrw"; }
+  else { l = new Date(date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+  return <span style={{ color: c, fontWeight: d <= 1 ? 700 : 500, fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}>{l}</span>;
+}
+
+/* ── Month Calendar ── */
+function MonthCal({ year, month, onPrev, onNext, tasks, reminders=[], selDate, onSelect }) {
+  const t = useT();
+  const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  // Build deadline count map for this month
+  const deadlineMap = {};
+  tasks.forEach(tk => {
+    if (!tk.deadline || tk.status==="complete") return;
+    const [y,m] = tk.deadline.split("-").map(Number);
+    if (y===year && m===month+1) {
+      deadlineMap[tk.deadline] = (deadlineMap[tk.deadline]||0) + 1;
+    }
+  });
+
+  // Build reminder map
+  const reminderMap = {};
+  reminders.forEach(r => {
+    const [y,m] = r.date.split("-").map(Number);
+    if (y===year && m===month+1) {
+      reminderMap[r.date] = (reminderMap[r.date]||0) + 1;
+    }
+  });
+
+  const cells = [];
+  for (let i=0; i<firstDay; i++) cells.push(null);
+  for (let d=1; d<=daysInMonth; d++) cells.push(d);
+
+  return (
+    <div style={{ padding:"12px 16px 8px" }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+        <button onClick={onPrev} style={{ background:"none",border:"none",fontSize:18,color:t.tx2,cursor:"pointer",padding:"4px 12px",minHeight:36,minWidth:36,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8 }}>‹</button>
+        <div style={{ fontSize:15,fontWeight:700,color:t.tx,fontFamily:"'DM Sans',sans-serif" }}>{MONTHS[month]} {year}</div>
+        <button onClick={onNext} style={{ background:"none",border:"none",fontSize:18,color:t.tx2,cursor:"pointer",padding:"4px 12px",minHeight:36,minWidth:36,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8 }}>›</button>
+      </div>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,textAlign:"center" }}>
+        {DAYS.map(d=>(
+          <div key={d} style={{ fontSize:10,fontWeight:700,color:t.tx3,padding:"4px 0",textTransform:"uppercase",letterSpacing:".04em" }}>{d}</div>
+        ))}
+        {cells.map((day,i) => {
+          if (day===null) return <div key={`e${i}`}/>;
+          const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const count = deadlineMap[dateStr]||0;
+          const remCount = reminderMap[dateStr]||0;
+          const isToday = dateStr===todayStr;
+          const isSel = dateStr===selDate;
+          const hasDeadlines = count>0;
+          const hasReminders = remCount>0;
+
+          return (
+            <button key={dateStr} onClick={()=>onSelect(isSel?null:dateStr)} style={{
+              background: isSel ? t.accent : isToday ? (t===T.dark?"rgba(123,147,255,.15)":"rgba(26,26,46,.08)") : "none",
+              border:"none", borderRadius:8, padding:"6px 2px 4px", cursor:"pointer",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:1,
+              minHeight:36, justifyContent:"center", position:"relative",
+              WebkitTapHighlightColor:"transparent",
+            }}>
+              <span style={{
+                fontSize:13, fontWeight:isToday||isSel?700:400,
+                color: isSel ? "#fff" : isToday ? t.accent : (hasDeadlines||hasReminders) ? t.tx : t.tx3,
+                fontFamily:"'JetBrains Mono',monospace",
+              }}>{day}</span>
+              {(hasDeadlines||hasReminders) && (
+                <div style={{ display:"flex",gap:2,alignItems:"center",height:6 }}>
+                  {hasDeadlines && (count<=3 ? Array.from({length:count}).map((_,j)=>(
+                    <div key={`t${j}`} style={{ width:4,height:4,borderRadius:2,background:isSel?"rgba(255,255,255,.7)":"#FF3B30" }}/>
+                  )) : (
+                    <span style={{ fontSize:8,fontWeight:700,color:isSel?"rgba(255,255,255,.8)":"#FF3B30",fontFamily:"'JetBrains Mono',monospace" }}>{count}</span>
+                  ))}
+                  {hasReminders && <div style={{ width:4,height:4,borderRadius:2,background:isSel?"rgba(255,255,255,.7)":"#B8860B" }}/>}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {selDate && (
+        <button onClick={()=>onSelect(null)} style={{
+          display:"block",margin:"8px auto 0",background:"none",border:"none",
+          fontSize:12,color:t.accent,fontWeight:600,cursor:"pointer",padding:"4px 12px",
+          fontFamily:"'DM Sans',sans-serif",
+        }}>Clear date filter</button>
+      )}
+    </div>
+  );
+}
+
+/* ── Sheet ── */
+function Sheet({ open, onClose, title, children }) {
+  const t = useT();
+  if (!open) return null;
+  return (
+    <div onClick={onClose} style={{ position:"fixed",inset:0,background:t.overlay,backdropFilter:"blur(4px)",display:"flex",flexDirection:"column",justifyContent:"flex-end",zIndex:1000 }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.sheet,borderRadius:"20px 20px 0 0",maxHeight:"92vh",overflow:"auto",boxShadow:"0 -8px 40px rgba(0,0,0,.2)",paddingBottom:"max(20px,env(safe-area-inset-bottom,20px))",WebkitOverflowScrolling:"touch" }}>
+        <div style={{ display:"flex",justifyContent:"center",padding:"10px 0 4px" }}><div style={{ width:36,height:5,borderRadius:3,background:t.brd }}/></div>
+        <div style={{ padding:"8px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${t.brd2}` }}>
+          <h2 style={{ margin:0,fontSize:18,fontWeight:700,fontFamily:"'DM Sans',sans-serif",color:t.tx }}>{title}</h2>
+          <button onClick={onClose} style={{ background:t.chip,border:"none",width:32,height:32,borderRadius:16,fontSize:16,color:t.tx2,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer" }}>×</button>
+        </div>
+        <div style={{ padding:"16px 20px 20px" }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Label({ text, children }) {
+  const t = useT();
+  return <div style={{ marginBottom:16 }}><label style={{ display:"block",fontSize:11,fontWeight:700,color:t.tx2,marginBottom:6,textTransform:"uppercase",letterSpacing:".06em" }}>{text}</label>{children}</div>;
+}
+
+function useInp() { const t = useT(); return { width:"100%",padding:"12px 14px",border:`1.5px solid ${t.inp}`,borderRadius:10,fontSize:16,fontFamily:"'DM Sans',sans-serif",color:t.tx,background:t.inpBg,outline:"none",boxSizing:"border-box",WebkitAppearance:"none" }; }
+function useSel() { const s = useInp(); return { ...s,backgroundImage:"url(\"data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center",paddingRight:36 }; }
+
+function Toggle({ on, set }) {
+  const t = useT();
+  return (
+    <button onClick={()=>set(!on)} style={{ width:52,height:30,borderRadius:15,border:"none",padding:2,cursor:"pointer",background:on?t.togOn:t.togOff,transition:"background .2s",display:"flex",alignItems:"center",flexShrink:0 }}>
+      <div style={{ width:26,height:26,borderRadius:13,background:t.togThumb,boxShadow:"0 1px 4px rgba(0,0,0,.2)",transition:"transform .2s",transform:on?"translateX(22px)":"translateX(0)" }}/>
+    </button>
+  );
+}
+
+/* ── Confirm Button (tap once to arm, tap again to confirm) ── */
+function ConfirmBtn({ label, confirmLabel, onConfirm, style: s }) {
+  const [armed, setArmed] = useState(false);
+  const timer = useRef(null);
+  const arm = (e) => {
+    if (e) e.stopPropagation();
+    if (armed) { onConfirm(); setArmed(false); clearTimeout(timer.current); }
+    else { setArmed(true); timer.current = setTimeout(()=>setArmed(false), 3000); }
+  };
+  useEffect(()=>()=>clearTimeout(timer.current),[]);
+  return <button onClick={arm} style={{ ...s, ...(armed ? { background: s?.dangerBg || "#FFF0F0", color: s?.dangerTx || "#FF3B30" } : {}) }}>{armed ? (confirmLabel||"Confirm?") : label}</button>;
+}
+
+/* ── Quick Tasks (daily scratchpad with history) ── */
+function QuickTasks({ allItems, viewDate, onViewDateChange, onAdd, onToggle, onDelete, onClear }) {
+  const t = useT();
+  const [val, setVal] = useState("");
+  const today = todayStr();
+  const isToday = viewDate===today;
+  const items = allItems.filter(q=>q.date===viewDate);
+  const pending = items.filter(i=>!i.done).length;
+  const carriedOver = items.filter(i=>!i.done&&i.carriedOver);
+
+  const allDates = [...new Set(allItems.map(q=>q.date))].sort();
+  const curIdx = allDates.indexOf(viewDate);
+  const hasPrev = curIdx>0 || (curIdx===-1 && allDates.length>0 && allDates[allDates.length-1]<viewDate);
+  const hasNext = !isToday;
+
+  const goPrev = () => { if (curIdx>0) onViewDateChange(allDates[curIdx-1]); else if (curIdx===-1 && allDates.length>0) { const prev = allDates.filter(d=>d<viewDate); if (prev.length) onViewDateChange(prev[prev.length-1]); }};
+  const goNext = () => { if (curIdx>=0 && curIdx<allDates.length-1) onViewDateChange(allDates[curIdx+1]); else onViewDateChange(today); };
+  const add = () => { if(val.trim()){ onAdd(val.trim()); setVal(""); }};
+  const fmtDate = (d) => new Date(d+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+
+  return (
+    <div>
+      {/* Date navigator */}
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,padding:"4px 0" }}>
+        <button onClick={goPrev} disabled={!hasPrev} style={{ background:"none",border:"none",fontSize:18,color:hasPrev?t.tx2:t.tx3,cursor:hasPrev?"pointer":"default",padding:"4px 10px",opacity:hasPrev?1:.3,minWidth:36,minHeight:36,display:"flex",alignItems:"center",justifyContent:"center" }}>‹</button>
+        <div style={{ textAlign:"center" }}>
+          <span style={{ fontSize:13,fontWeight:600,color:isToday?t.accent:t.tx2 }}>{fmtDate(viewDate)}</span>
+          {isToday&&<span style={{ fontSize:10,color:t.accent,marginLeft:6 }}>Today</span>}
+          {!isToday&&<button onClick={()=>onViewDateChange(today)} style={{ background:`${t.accent}18`,border:"none",borderRadius:6,fontSize:10,fontWeight:600,color:t.accent,cursor:"pointer",padding:"2px 8px",marginLeft:6,fontFamily:"'DM Sans',sans-serif" }}>Go to today</button>}
+        </div>
+        <button onClick={goNext} disabled={!hasNext} style={{ background:"none",border:"none",fontSize:18,color:hasNext?t.tx2:t.tx3,cursor:hasNext?"pointer":"default",padding:"4px 10px",opacity:hasNext?1:.3,minWidth:36,minHeight:36,display:"flex",alignItems:"center",justifyContent:"center" }}>›</button>
+      </div>
+
+      {isToday&&<div style={{ display:"flex",gap:8,marginBottom:12 }}>
+        <input value={val} onChange={e=>setVal(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")add();}}
+          placeholder="Add a quick task..." autoFocus
+          style={{ flex:1,padding:"10px 12px",border:`1.5px solid ${t.inp}`,borderRadius:10,fontSize:14,fontFamily:"'DM Sans',sans-serif",color:t.tx,background:t.inpBg,outline:"none",boxSizing:"border-box",WebkitAppearance:"none" }}/>
+        <button onClick={add} style={{ background:t.accent,border:"none",borderRadius:10,color:"#fff",fontSize:13,fontWeight:700,padding:"10px 16px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",flexShrink:0 }}>Add</button>
+      </div>}
+
+      {items.length===0&&<div style={{ fontSize:13,color:t.tx3,textAlign:"center",padding:"16px 0" }}>{isToday?"Jot down quick to-dos for today.":"No quick tasks on this day."}</div>}
+
+      {isToday&&carriedOver.length>0&&<div style={{ fontSize:10,fontWeight:700,color:"#B8860B",textTransform:"uppercase",letterSpacing:".05em",padding:"4px 0 4px" }}>Carried over</div>}
+      {isToday&&carriedOver.map(item=>(
+        <div key={item.id} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:`1px solid ${t.brd2}` }}>
+          <button onClick={()=>onToggle(item.id)} style={{ background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#999",padding:0,flexShrink:0,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center" }}>○</button>
+          <span style={{ flex:1,fontSize:14,color:"#B8860B" }}>{item.text}</span>
+          <button onClick={()=>onDelete(item.id)} style={{ background:"none",border:"none",color:t.tx3,fontSize:15,cursor:"pointer",padding:"4px 8px",borderRadius:4 }}>×</button>
+        </div>
+      ))}
+
+      {isToday&&carriedOver.length>0&&items.filter(i=>!i.carriedOver||i.done).length>0&&<div style={{ fontSize:10,fontWeight:700,color:t.tx3,textTransform:"uppercase",letterSpacing:".05em",padding:"8px 0 4px" }}>Today</div>}
+      {(isToday?items.filter(i=>!i.carriedOver||i.done):items).map(item=>(
+        <div key={item.id} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:`1px solid ${t.brd2}` }}>
+          {isToday?<button onClick={()=>onToggle(item.id)} style={{ background:"none",border:"none",fontSize:18,cursor:"pointer",color:item.done?"#30D158":"#999",padding:0,flexShrink:0,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center" }}>{item.done?"●":"○"}</button>
+          :<span style={{ fontSize:18,color:item.done?"#30D158":"#999",flexShrink:0,minWidth:32,textAlign:"center" }}>{item.done?"●":"○"}</span>}
+          <span style={{ flex:1,fontSize:14,color:item.done?t.tx3:t.tx,textDecoration:item.done?"line-through":"none" }}>{item.text}</span>
+          {isToday&&<button onClick={()=>onDelete(item.id)} style={{ background:"none",border:"none",color:t.tx3,fontSize:15,cursor:"pointer",padding:"4px 8px",borderRadius:4 }}>×</button>}
+        </div>
+      ))}
+
+      {isToday&&items.length>0&&items.every(i=>i.done)&&(
+        <button onClick={onClear} style={{ width:"100%",padding:"10px",marginTop:10,background:"none",border:`1px dashed ${t.brd}`,borderRadius:10,fontSize:12,fontWeight:600,color:t.tx3,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>Clear completed</button>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ══ MAIN APP                                               ══ */
+/* ═══════════════════════════════════════════════════════════ */
+function App() {
+  const [clients, setClients] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [associates, setAssociates] = useState(["Unassigned"]);
+  const [dark, setDark] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const [view, setView] = useState("checklist");
+  const [sheet, setSheet] = useState(null);
+  const [showBackup, setShowBackup] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const [storageOk, setStorageOk] = useState(null);
+  const [importText, setImportText] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingClient, setEditingClient] = useState(null);
+  const [editingDeal, setEditingDeal] = useState(null);
+  const [expClients, setExpClients] = useState({});
+  const [expDeals, setExpDeals] = useState({});
+  const [expTask, setExpTask] = useState(null);
+  const [menuTask, setMenuTask] = useState(null);
+  const [expReminder, setExpReminder] = useState(null);
+  const [expQuicky, setExpQuicky] = useState(null);
+  const [menuQuicky, setMenuQuicky] = useState(null);
+  const [editQuicky, setEditQuicky] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("deadline");
+  const [checklistView, setChecklistView] = useState("active");
+  const [filterWeek, setFilterWeek] = useState(false);
+  const [selDate, setSelDate] = useState(null); // "YYYY-MM-DD" or null
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [preClient, setPreClient] = useState(null);
+  const [preDeal, setPreDeal] = useState(null);
+  const [preDeadline, setPreDeadline] = useState("");
+  const [selClient, setSelClient] = useState(null);
+  const [selAssociate, setSelAssociate] = useState(null);
+  const [teamTab, setTeamTab] = useState("tasks");
+  const [clientTab, setClientTab] = useState("matters");
+  const [calTab, setCalTab] = useState("tasks");
+  const [calDate, setCalDate] = useState(null);
+  const [assocSort, setAssocSort] = useState("name");
+  const [showCompleted, setShowCompleted] = useState({});
+  const [quickTasks, setQuickTasks] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [teamRoles, setTeamRoles] = useState({});
+  const [teamNotes, setTeamNotes] = useState({});
+  const [clientNotes, setClientNotes] = useState({});
+  const [showAssocNotes, setShowAssocNotes] = useState(false);
+  const [qtViewDate, setQtViewDate] = useState(todayStr());
+
+  const theme = dark ? T.dark : T.light;
+  const data = useRef({ clients:[], deals:[], tasks:[], associates:["Unassigned"], dark:false, quickTasks:[], templates:[], reminders:[], teamRoles:{}, teamNotes:{}, clientNotes:{} });
+
+  /* ── Persist helper ── */
+  const save = async (upd) => {
+    const next = { ...data.current, ...upd };
+    data.current = next;
+    if (upd.clients !== undefined) setClients(upd.clients);
+    if (upd.deals !== undefined) setDeals(upd.deals);
+    if (upd.tasks !== undefined) setTasks(upd.tasks);
+    if (upd.associates !== undefined) setAssociates(upd.associates);
+    if (upd.dark !== undefined) setDark(upd.dark);
+    if (upd.quickTasks !== undefined) setQuickTasks(upd.quickTasks);
+    if (upd.templates !== undefined) setTemplates(upd.templates);
+    if (upd.reminders !== undefined) setReminders(upd.reminders);
+    if (upd.teamRoles !== undefined) setTeamRoles(upd.teamRoles);
+    if (upd.teamNotes !== undefined) setTeamNotes(upd.teamNotes);
+    if (upd.clientNotes !== undefined) setClientNotes(upd.clientNotes);
+    await storageSet(next);
+  };
+
+  /* ── Load on mount ── */
+  useEffect(() => {
+    (async () => {
+      const d = await storageGet();
+      if (d) {
+        let cls = d.clients||[], dls = d.deals||[], tks = d.tasks||[];
+        const assoc = d.associates||["Unassigned"];
+        const dk = d.dark||false;
+        // Migration: ensure every client has a Misc deal
+        let changed = false;
+        // Migration: ensure Administrative client exists
+        if (!cls.find(c=>c.isAdmin)) {
+          const admin = { id:uid(), name:"Administrative", isAdmin:true };
+          cls = [...cls, admin];
+          dls = [...dls, { id:uid(), name:"Miscellaneous", clientId:admin.id, isMisc:true }];
+          changed = true;
+        }
+        cls.forEach(c => {
+          if (!dls.find(dl => dl.clientId===c.id && dl.isMisc)) {
+            dls = [...dls, { id:uid(), name:"Miscellaneous", clientId:c.id, isMisc:true }];
+            changed = true;
+          }
+        });
+        // Migration: move standalone tasks (no dealId) into their client's Misc deal
+        tks = tks.map(t => {
+          if (!t.dealId && t.clientId) {
+            const misc = dls.find(dl => dl.clientId===t.clientId && dl.isMisc);
+            if (misc) { changed = true; return { ...t, dealId: misc.id }; }
+          }
+          return t;
+        });
+        // Quick tasks: carry over incomplete from past dates to today, keep all history
+        const today = todayStr();
+        let qt = d.quickTasks||[];
+        // Migrate old items without date
+        qt = qt.map(q => q.date ? q : { ...q, date: today, carriedOver: false });
+        // Carry over: for each incomplete past item, create a copy on today if not already there
+        const todayIds = new Set(qt.filter(q=>q.date===today).map(q=>q.sourceId||q.id));
+        const toCarry = qt.filter(q=>q.date!==today&&!q.done&&!todayIds.has(q.id));
+        if (toCarry.length>0) {
+          qt = [...qt, ...toCarry.map(q=>({id:uid(),text:q.text,done:false,date:today,carriedOver:true,sourceId:q.id}))];
+          changed = true;
+        }
+        changed = changed || JSON.stringify(qt) !== JSON.stringify(d.quickTasks||[]);
+        // Migration: map old statuses to new simplified statuses
+        const statusMap = {pending:"active",in_progress:"active",review:"active",waiting:"hold",active:"active",hold:"hold",complete:"complete"};
+        tks = tks.map(t=>{
+          const mapped = statusMap[t.status]||"active";
+          if(mapped!==t.status){changed=true;return{...t,status:mapped};}
+          return t;
+        });
+        const s = { clients:cls, deals:dls, tasks:tks, associates:assoc, dark:dk, quickTasks:qt, templates:d.templates||[], reminders:d.reminders||[], teamRoles:d.teamRoles||{}, teamNotes:d.teamNotes||{}, clientNotes:d.clientNotes||{} };
+        data.current = s;
+        setClients(s.clients); setDeals(s.deals); setTasks(s.tasks);
+        setAssociates(s.associates); setDark(s.dark); setQuickTasks(s.quickTasks); setTemplates(s.templates); setReminders(s.reminders); setTeamRoles(s.teamRoles); setTeamNotes(s.teamNotes); setClientNotes(s.clientNotes);
+        const e = {}; s.clients.forEach(c => e[c.id]=true); setExpClients(e);
+        if (changed) await storageSet(s);
+      } else {
+        // First launch: create Administrative client
+        const admin = { id:uid(), name:"Administrative", isAdmin:true };
+        const misc = { id:uid(), name:"Miscellaneous", clientId:admin.id, isMisc:true };
+        const s = { clients:[admin], deals:[misc], tasks:[], associates:["Unassigned"], dark:false, quickTasks:[], templates:[], reminders:[], teamRoles:{}, teamNotes:{}, clientNotes:{} };
+        data.current = s;
+        setClients(s.clients); setDeals(s.deals);
+        await storageSet(s);
+      }
+      setLoaded(true);
+      // Test storage
+      const diag = [];
+      let ok = false;
+      // Test persistent
+      try {
+        await window.storage.set("__test__", "1", false);
+        const rd = await window.storage.get("__test__", false);
+        if (rd && rd.value === "1") { ok = true; diag.push("Persistent storage: ✓"); }
+        else diag.push("Persistent storage: ✗ (read failed)");
+        try { await window.storage.delete("__test__", false); } catch(e){}
+      } catch(e) { diag.push("Persistent storage: ✗ (" + e.message + ")"); }
+      // Test localStorage
+      try {
+        localStorage.setItem("__test__", "1");
+        const v = localStorage.getItem("__test__");
+        if (v === "1") { if(!ok) ok = true; diag.push("localStorage: ✓"); }
+        else diag.push("localStorage: ✗");
+        localStorage.removeItem("__test__");
+      } catch(e) { diag.push("localStorage: ✗ (" + e.message + ")"); }
+      setStorageOk(ok);
+    })();
+  }, []);
+
+  /* ── CRUD ── */
+  const addClient = (name) => {
+    const c = { id:uid(), name };
+    const misc = { id:uid(), name:"Miscellaneous", clientId:c.id, isMisc:true };
+    save({ clients:[...data.current.clients, c], deals:[...data.current.deals, misc] });
+    setExpClients(e=>({...e,[c.id]:true}));
+    setSheet(null);
+  };
+  const updateClient = (id,name) => {
+    save({ clients: data.current.clients.map(x=>x.id===id?{...x,name}:x) });
+    setSheet(null); setEditingClient(null);
+  };
+  const deleteClient = (id) => {
+    const cl = data.current.clients.find(x=>x.id===id);
+    if (cl?.isAdmin) return;
+    save({ clients:data.current.clients.filter(x=>x.id!==id), deals:data.current.deals.filter(x=>x.clientId!==id), tasks:data.current.tasks.filter(x=>x.clientId!==id) });
+    if (selClient===id) setSelClient(null);
+  };
+  const addDeal = (name,clientId) => {
+    const d = { id:uid(), name, clientId };
+    save({ deals:[...data.current.deals, d] });
+    setExpDeals(e=>({...e,[d.id]:true}));
+    setSheet(null);
+  };
+  const deleteDeal = (id) => {
+    const deal = data.current.deals.find(x=>x.id===id);
+    if (deal?.isMisc) return;
+    save({ deals:data.current.deals.filter(x=>x.id!==id), tasks:data.current.tasks.filter(x=>x.dealId!==id) });
+  };
+  const updateDeal = (id,name) => {
+    save({ deals: data.current.deals.map(x=>x.id===id?{...x,name}:x) });
+    setSheet(null); setEditingDeal(null);
+  };
+  const saveTask = (td) => {
+    if (editingTask && editingTask.id) {
+      save({ tasks: data.current.tasks.map(x=>x.id===editingTask.id?{...x,...td}:x) });
+    } else {
+      save({ tasks:[...data.current.tasks, { id:uid(), createdAt:new Date().toISOString(), ...td }] });
+    }
+    setSheet(null); setEditingTask(null); setPreDeadline("");
+  };
+  const deleteTask = (id) => { save({ tasks:data.current.tasks.filter(x=>x.id!==id) }); setExpTask(null); };
+  const cycleStatus = (id) => {
+    const o = ["active","hold","complete"];
+    save({ tasks: data.current.tasks.map(x=>x.id!==id?x:{...x,status:o[(o.indexOf(x.status)+1)%o.length]}) });
+  };
+  const setStatus = (id,status) => {
+    save({ tasks: data.current.tasks.map(x=>x.id!==id?x:{...x,status,completedAt:status==="complete"?new Date().toISOString():undefined}) });
+  };
+  const toggleFlag = (id) => {
+    save({ tasks: data.current.tasks.map(x=>x.id!==id?x:{...x,flagged:!x.flagged}) });
+  };
+  const updateTaskSubs = (id, subItems) => {
+    save({ tasks: data.current.tasks.map(x=>x.id!==id?x:{...x,subItems}) });
+  };
+  const updateQuickySubs = (id, subItems) => {
+    save({ quickTasks: data.current.quickTasks.map(x=>x.id!==id?x:{...x,subItems}) });
+  };
+  const reorderTasks = (dealId, orderedIds) => {
+    // Assign order values based on new arrangement
+    const orderMap = {};
+    orderedIds.forEach((id,i) => orderMap[id]=i);
+    save({ tasks: data.current.tasks.map(x=>x.dealId===dealId&&orderMap[x.id]!==undefined?{...x,order:orderMap[x.id]}:x) });
+  };
+  const addAssociate = (n,role) => { if(n&&!data.current.associates.includes(n)) save({associates:[...data.current.associates,n],teamRoles:{...data.current.teamRoles,[n]:role||"Associate"}}); };
+  const removeAssociate = (n) => {
+    if(n==="Unassigned") return;
+    save({ associates:data.current.associates.filter(x=>x!==n), tasks:data.current.tasks.map(x=>x.assignee===n?{...x,assignee:"Unassigned"}:x) });
+  };
+
+  const togClient = id => setExpClients(e=>({...e,[id]:!e[id]}));
+  const togDeal = id => setExpDeals(e=>({...e,[id]:!e[id]}));
+  const filt = t => {
+    if (filter!=="all"&&t.status!==filter) return false;
+    if (selDate&&t.deadline!==selDate) return false;
+    if (filterWeek&&t.deadline) {
+      const now = new Date(); now.setHours(0,0,0,0);
+      const day = now.getDay(); const diff = day===0?6:day-1;
+      const monStart = new Date(now); monStart.setDate(now.getDate()-diff);
+      const sunEnd = new Date(monStart); sunEnd.setDate(monStart.getDate()+6);
+      const td = new Date(t.deadline+"T00:00:00");
+      if (td<monStart||td>sunEnd) return false;
+    }
+    if (filterWeek&&!t.deadline) return false;
+    return true;
+  };
+  // Checklist filter: includes all statuses (completed shown faded at bottom)
+  const checklistFilt = t => filt(t);
+  const getMisc = (clientId) => deals.find(d=>d.clientId===clientId&&d.isMisc);
+
+  const sortedClients = [...clients].sort((a,b)=>{
+    if (a.isAdmin&&!b.isAdmin) return -1;
+    if (!a.isAdmin&&b.isAdmin) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Active deals: have ≥1 incomplete task
+  const activeDealSet = new Set(deals.filter(d=>{
+    const dt=tasks.filter(t=>t.dealId===d.id);
+    return dt.some(t=>t.status!=="complete");
+  }).map(d=>d.id));
+  const activeTasks = tasks.filter(t=>!t.dealId||activeDealSet.has(t.dealId));
+  const totalT = activeTasks.length;
+  const doneT = activeTasks.filter(t=>t.status==="complete").length;
+  const overdueT = activeTasks.filter(t=>t.status!=="complete"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).length;
+  const waitingT = activeTasks.filter(t=>t.status==="hold").length;
+  const adminClient = clients.find(c=>c.isAdmin);
+  const adminT = adminClient?activeTasks.filter(t=>t.clientId===adminClient.id&&t.status!=="complete").length:0;
+
+  if (!loaded) return (
+    <div style={{ height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'DM Sans',sans-serif",color:"#999" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>Loading...</div>
+  );
+
+  return (
+    <Ctx.Provider value={theme}>
+    <div style={{ fontFamily:"'DM Sans',sans-serif",color:theme.tx,background:theme.bg,height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden",maxWidth:480,margin:"0 auto" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+      {/* ── HEADER ── */}
+      <div style={{ padding:"12px 20px 10px",background:theme.hdr,flexShrink:0,paddingTop:"max(12px,env(safe-area-inset-top,12px))",borderBottom:dark?`1px solid ${theme.brd}`:"none" }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <img src={dark?LOGO_DARK:LOGO_LIGHT} alt="FIRM" style={{ width:32,height:32,minWidth:32,minHeight:32,borderRadius:6,flexShrink:0 }}/>
+          </div>
+          <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+            {view==="clients"&&selClient&&(
+              <button onClick={()=>setSelClient(null)} style={{ background:dark?theme.chip:"rgba(255,255,255,.15)",border:"none",borderRadius:16,color:dark?theme.tx2:"rgba(255,255,255,.8)",fontSize:12,fontWeight:600,padding:"6px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>← Back</button>
+            )}
+            {view==="team"&&selAssociate&&(
+              <button onClick={()=>setSelAssociate(null)} style={{ background:dark?theme.chip:"rgba(255,255,255,.15)",border:"none",borderRadius:16,color:dark?theme.tx2:"rgba(255,255,255,.8)",fontSize:12,fontWeight:600,padding:"6px 12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>← Back</button>
+            )}
+            <button onClick={()=>setSheet("search")} style={{ background:"none",border:"none",cursor:"pointer",padding:6,display:"flex",alignItems:"center",justifyContent:"center",minWidth:32,minHeight:32,borderRadius:8,WebkitTapHighlightColor:"transparent" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={dark?theme.tx2:"rgba(255,255,255,.8)"} strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── CONTENT ── */}
+      <div style={{ flex:1,overflow:"auto",WebkitOverflowScrolling:"touch" }}>
+
+        {/* ═══ CHECKLIST ═══ */}
+        {view==="checklist"&&(
+          <div style={{ display:"flex",flexDirection:"column",height:"100%" }}>
+
+            {/* Fixed top section */}
+            <div style={{ flexShrink:0,background:theme.bg }}>
+
+            {/* Checklist header + action buttons */}
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 16px 0",marginBottom:12 }}>
+              <h3 style={{ margin:0,fontSize:16,fontWeight:700,color:theme.tx }}>Checklist</h3>
+              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                <button onClick={()=>{setPreClient(null);setPreDeal(null);setPreDeadline(todayStr());setEditingTask(null);setSheet("task");}} style={{ background:theme.btn,border:"none",borderRadius:20,color:theme.btnTx,fontSize:13,fontWeight:600,padding:"9px 18px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Task</button>
+                <button onClick={()=>setSheet("quickTask")} style={{ background:theme.btn,border:"none",borderRadius:20,color:theme.btnTx,fontSize:13,fontWeight:600,padding:"9px 18px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Quicky</button>
+              </div>
+            </div>
+
+            {/* Row 2: Active / Hold / Admin toggle */}
+            <div style={{ padding:"4px 16px 2px",display:"flex",gap:0,background:theme.chip,borderRadius:10,margin:"0 16px 4px" }}>
+              {[{k:"active",l:"Active",c:null,clr:"#FF3B30",tx:"#fff"},{k:"hold",l:"Hold",c:waitingT,clr:"#FFCC00",tx:"#1A1A2E"},{k:"admin",l:"Admin",c:adminT,clr:"#30D158",tx:"#fff"}].map(({k,l,c,clr,tx:btx})=>(
+                <button key={k} onClick={()=>setChecklistView(k)} style={{
+                  flex:1,padding:"8px 0",border:"none",borderRadius:8,fontSize:12,fontWeight:700,
+                  background:checklistView===k?clr:"transparent",
+                  color:checklistView===k?btx:theme.tx3,
+                  cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"all .2s",
+                  textTransform:"uppercase",letterSpacing:".04em",
+                }}>{l}{c>0&&<span style={{ marginLeft:3,fontSize:9,fontWeight:700,background:checklistView===k?"rgba(0,0,0,.15)":clr,color:clr==="#FFCC00"?"#1A1A2E":"#fff",borderRadius:8,padding:"1px 5px",minWidth:14,display:"inline-block",textAlign:"center" }}>{c}</span>}</button>
+              ))}
+            </div>
+
+            {/* Row 3: Sort + Today + Filter */}
+            <div style={{ padding:"4px 16px 8px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+              <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ border:"none",background:"none",fontSize:12,color:theme.accent,fontWeight:600,fontFamily:"'DM Sans',sans-serif",cursor:"pointer",padding:"4px 0" }}>
+                <option value="deadline">Sort: Deadline</option>
+                <option value="client">Sort: Client</option>
+                <option value="custom">Sort: Custom</option>
+              </select>
+              <button onClick={()=>{if(selDate===todayStr()){setSelDate(null);}else{setSelDate(todayStr());setFilterWeek(false);}}} style={{
+                border:"none",borderRadius:12,padding:"4px 10px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
+                background:selDate===todayStr()?"#FF3B30":"#FF3B3018",color:selDate===todayStr()?"#fff":"#FF3B30",
+              }}>Today</button>
+              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                {selDate&&selDate!==todayStr()&&<button onClick={()=>setSelDate(null)} style={{ border:"none",background:`#B8860B20`,borderRadius:12,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#B8860B",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:3 }}>{selDate.slice(5)} ×</button>}
+                {filterWeek&&<button onClick={()=>setFilterWeek(false)} style={{ border:"none",background:`${theme.accent}18`,borderRadius:12,padding:"3px 8px",fontSize:10,fontWeight:700,color:theme.accent,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:3 }}>This Week ×</button>}
+                {filter!=="all"&&<button onClick={()=>setFilter("all")} style={{ border:"none",background:`${theme.accent}18`,borderRadius:12,padding:"3px 8px",fontSize:10,fontWeight:700,color:theme.accent,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:3 }}>{STATUSES[filter]?.label} ×</button>}
+                <select value="__display__" onChange={e=>{
+                  const v=e.target.value;
+                  if(v==="__none__"){setFilter("all");setFilterWeek(false);setSelDate(null);}
+                  else if(v==="__thisWeek__"){setFilterWeek(!filterWeek);setSelDate(null);}
+                  else{setFilter(v==="all"?"all":v);}
+                }} style={{ border:"none",background:"none",fontSize:12,color:theme.accent,fontWeight:600,fontFamily:"'DM Sans',sans-serif",cursor:"pointer",padding:"4px 0",textAlign:"right" }}>
+                  <option value="__display__" disabled>Filter: {filter!=="all"?(STATUSES[filter]?.label||""):(filterWeek?"This Week":"None")}</option>
+                  <option value="__none__">Clear All Filters</option>
+                  <option disabled>── Status ──</option>
+                  {Object.entries(STATUSES).map(([k,v])=>(
+                    <option key={k} value={k}>{v.label}{filter===k?" ✓":""}</option>
+                  ))}
+                  <option disabled>── Time ──</option>
+                  <option value="__thisWeek__">{filterWeek?"✓ ":""}This Week</option>
+                </select>
+              </div>
+            </div>
+
+            {/* End fixed top section */}
+            </div>
+
+            {/* Scrollable task list */}
+            <div style={{ flex:1,overflow:"auto",WebkitOverflowScrolling:"touch",paddingBottom:100 }}>
+
+            {(()=>{
+              const sortFn = (a,b) => {
+                // Flagged items always first
+                if(a.flagged&&!b.flagged) return -1; if(!a.flagged&&b.flagged) return 1;
+                if(sortBy==="custom") return (a.checklistOrder||0)-(b.checklistOrder||0);
+                if(sortBy==="deadline"){ if(!a.deadline||a.deadline==="N/A") return 1; if(!b.deadline||b.deadline==="N/A") return -1; const dc=a.deadline.localeCompare(b.deadline); if(dc!==0) return dc; }
+                if(sortBy==="client"){ const ca=clients.find(c=>c.id===a.clientId)?.name||""; const cb=clients.find(c=>c.id===b.clientId)?.name||""; const cc=ca.localeCompare(cb); if(cc!==0) return cc; }
+                return (a.checklistOrder||0)-(b.checklistOrder||0);
+              };
+              const adminId = clients.find(c=>c.isAdmin)?.id;
+              const filtered = activeTasks.filter(checklistFilt).filter(t=>{
+                if(checklistView==="hold") return t.status==="hold";
+                if(checklistView==="admin") return t.clientId===adminId&&t.status!=="hold";
+                return t.status!=="hold"&&t.clientId!==adminId;
+              });
+              const overdue = filtered.filter(t=>t.status!=="hold"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).sort(sortFn);
+              const dueToday = filtered.filter(t=>t.status!=="hold"&&daysUntil(t.deadline)===0).sort(sortFn);
+              const dueTomorrow = filtered.filter(t=>t.status!=="hold"&&daysUntil(t.deadline)===1).sort(sortFn);
+              const dueLater = filtered.filter(t=>t.status!=="hold"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)>1).sort(sortFn);
+              const noDate = filtered.filter(t=>t.status!=="hold"&&(daysUntil(t.deadline)===null)).sort(sortFn);
+              const holdTasks = filtered.filter(t=>t.status==="hold").sort(sortFn);
+              const todayQT = quickTasks.filter(q=>q.date===todayStr());
+
+              const allActiveTasks = [...overdue,...dueToday,...dueTomorrow,...dueLater,...noDate];
+              const hasContent = checklistView==="hold"?holdTasks.length>0:checklistView==="admin"?allActiveTasks.length>0:(allActiveTasks.length>0||todayQT.length>0);
+
+              if(!hasContent) return (
+                <div style={{ textAlign:"center",padding:"60px 20px",color:theme.tx2 }}>
+                  <div style={{ fontSize:40,marginBottom:12 }}>{checklistView==="hold"?"◷":checklistView==="admin"?"⚙":"📋"}</div>
+                  <div style={{ fontSize:16,fontWeight:600,color:theme.tx }}>{checklistView==="hold"?"No tasks on hold":checklistView==="admin"?"No admin tasks":clients.length===0?"No clients yet":"No active tasks"}</div>
+                  <div style={{ fontSize:13,marginTop:6 }}>{checklistView==="hold"?"Tasks set to 'Hold' will appear here.":checklistView==="admin"?"Tasks under Administrative will appear here.":clients.length===0?"Head to the Matters tab to get started.":"All caught up!"}</div>
+                </div>
+              );
+
+              const reorderSection = (section, fromIdx, toIdx) => {
+                const newArr = [...section];
+                const [moved] = newArr.splice(fromIdx, 1);
+                newArr.splice(toIdx, 0, moved);
+                const orderMap = {};
+                newArr.forEach((t, i) => orderMap[t.id] = i);
+                save({ tasks: data.current.tasks.map(t => orderMap[t.id] !== undefined ? { ...t, checklistOrder: orderMap[t.id] } : t) });
+                setSortBy("custom");
+              };
+
+              const renderSection = (section, hideDue) => <DragList items={section} onReorder={(from,to)=>reorderSection(section,from,to)} renderItem={(task, idx, onDragStart) => {
+                const cl = clients.find(c=>c.id===task.clientId);
+                const dl = deals.find(d=>d.id===task.dealId);
+                return <FlatTaskRow key={task.id} task={task} clientName={cl?.name} dealName={dl?.isMisc?null:dl?.name}
+                  exp={expTask===task.id} onTog={()=>{setExpTask(expTask===task.id?null:task.id);setMenuTask(null);}}
+                  menu={menuTask===task.id} onTogMenu={()=>{setMenuTask(menuTask===task.id?null:task.id);setExpTask(null);}}
+                  onSetStatus={s=>setStatus(task.id,s)}
+                  onToggleFlag={()=>toggleFlag(task.id)}
+                  onEdit={()=>{setEditingTask(task);setSheet("editTask");}}
+                  onDel={()=>deleteTask(task.id)}
+                  onUpdateSubs={subs=>updateTaskSubs(task.id,subs)}
+                  onDragStart={onDragStart}
+                  hideDue={hideDue}/>;
+              }}/>;
+
+              if(checklistView==="hold") return <div style={{ padding:"0 16px" }}>
+                {renderSection(holdTasks,true)}
+              </div>;
+
+              if(checklistView==="admin") return <div style={{ padding:"0 16px" }}>
+                {[
+                  {items:[...overdue,...dueToday].sort(sortFn),label:`Today (${overdue.length+dueToday.length})`,color:"#FF3B30",hd:true},
+                  {items:dueTomorrow,label:`Tomorrow (${dueTomorrow.length})`,color:"#B8860B",hd:true},
+                  {items:dueLater,label:`Upcoming (${dueLater.length})`,color:theme.accent,hd:false},
+                  {items:noDate,label:`No Date (${noDate.length})`,color:theme.tx3,hd:true},
+                ].filter(g=>g.items.length>0).map(g=>(
+                  <div key={g.label} style={{ marginBottom:12 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:8 }}>
+                      {g.dot&&<div style={{ width:8,height:8,borderRadius:4,background:g.color }}/>}
+                      <span style={{ fontSize:11,fontWeight:700,color:g.color,textTransform:"uppercase",letterSpacing:".05em" }}>{g.label}</span>
+                    </div>
+                    {renderSection(g.items,g.hd)}
+                  </div>
+                ))}
+              </div>;
+
+              return <div style={{ padding:"0 16px" }}>
+                {(()=>{
+                  // Build unified Today list: quickies + overdue + dueToday tasks
+                  const undoneQT = todayQT.filter(q=>!q.done).map(q=>({...q,_type:"quicky"}));
+                  const doneQT = todayQT.filter(q=>q.done);
+                  const todayTasks = [...overdue,...dueToday].sort(sortFn).map(t=>({...t,_type:"task"}));
+                  const todayAll = [...undoneQT,...todayTasks].sort((a,b)=>{
+                    if(a.flagged&&!b.flagged) return -1; if(!a.flagged&&b.flagged) return 1;
+                    return (a.checklistOrder||a.quickOrder||0)-(b.checklistOrder||b.quickOrder||0);
+                  });
+                  const todayCount = todayAll.length + doneQT.length;
+
+                  const reorderMixed = (fromIdx, toIdx) => {
+                    const newArr = [...todayAll];
+                    const [moved] = newArr.splice(fromIdx, 1);
+                    newArr.splice(toIdx, 0, moved);
+                    const taskOrder = {}, quickOrder = {};
+                    newArr.forEach((item, i) => {
+                      if(item._type==="task") taskOrder[item.id] = i;
+                      else quickOrder[item.id] = i;
+                    });
+                    const updates = {};
+                    if(Object.keys(taskOrder).length) {
+                      updates.tasks = data.current.tasks.map(t=>taskOrder[t.id]!==undefined?{...t,checklistOrder:taskOrder[t.id]}:t);
+                    }
+                    if(Object.keys(quickOrder).length) {
+                      updates.quickTasks = data.current.quickTasks.map(q=>quickOrder[q.id]!==undefined?{...q,quickOrder:quickOrder[q.id]}:q);
+                    }
+                    save(updates);
+                    setSortBy("custom");
+                  };
+
+                  const renderMixedItem = (item, idx, onDragStart) => {
+                    if(item._type==="quicky") {
+                      const q = item; const qFlag = q.flagged;
+                      const isExp = expQuicky === q.id;
+                      const isMenu = menuQuicky === q.id;
+                      const isEdit = editQuicky === q.id;
+                      const subs = q.subItems||[];
+                      return (
+                        <div style={{ background:qFlag?(dark?"#1A0A10":"#FFF0F0"):theme.card,borderRadius:8,marginBottom:4,boxShadow:theme.cardShadow,border:qFlag?"1px solid #FF3B30":theme.cardBorder,borderLeft:qFlag?`3px solid #FF3B30`:undefined,overflow:"hidden",transition:"all .2s" }}>
+                          <div onClick={()=>{setExpQuicky(isExp?null:q.id);setMenuQuicky(null);setEditQuicky(null);}} style={{ padding:"7px 8px 7px 10px",display:"flex",alignItems:"center",gap:4,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+                            <button onClick={e=>{e.stopPropagation();save({quickTasks:data.current.quickTasks.map(x=>x.id===q.id?{...x,done:true}:x)});}} style={{ background:"none",border:"none",fontSize:14,cursor:"pointer",color:qFlag?"#FF3B30":"#999",padding:0,flexShrink:0,minWidth:24,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>○</button>
+                            <div style={{ flex:1,minWidth:0 }}>
+                              <div style={{ fontSize:12,fontWeight:600,color:qFlag?"#FF3B30":q.carriedOver?"#B8860B":theme.tx }}>{qFlag?"🚩 ":""}{q.text}{subs.length>0&&<span style={{ fontSize:10,color:theme.tx3,marginLeft:4 }}>({subs.filter(s=>s.done).length}/{subs.length})</span>}</div>
+                            </div>
+                            <button onClick={e=>{e.stopPropagation();save({quickTasks:data.current.quickTasks.map(x=>x.id===q.id?{...x,flagged:!x.flagged}:x)});}} style={{ background:"none",border:"none",fontSize:12,cursor:"pointer",color:qFlag?"#FF3B30":theme.tx3,padding:"2px 4px",flexShrink:0,minWidth:22,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>{qFlag?"🚩":"🏳"}</button>
+                            <button onClick={e=>{e.stopPropagation();setMenuQuicky(isMenu?null:q.id);setExpQuicky(null);}} style={{ background:"none",border:"none",fontSize:11,cursor:"pointer",color:theme.tx3,padding:"2px 4px",flexShrink:0,minWidth:22,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>🖊️</button>
+                            {onDragStart&&<div onTouchStart={e=>{e.stopPropagation();onDragStart(e);}} onMouseDown={e=>{e.stopPropagation();onDragStart(e);}} style={{
+                              flexShrink:0,marginLeft:1,padding:"4px 2px",cursor:"grab",touchAction:"none",userSelect:"none",WebkitUserSelect:"none",
+                              display:"flex",flexDirection:"column",gap:1,alignItems:"center",
+                            }}>
+                              <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/></div>
+                              <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/></div>
+                              <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:theme.tx3 }}/></div>
+                            </div>}
+                          </div>
+                          {isMenu&&<div style={{ padding:"6px 12px 10px",borderTop:`1px solid ${theme.brd2}` }}>
+                            {isEdit?<div>
+                              <input autoFocus defaultValue={q.text} onKeyDown={e=>{if(e.key==="Enter"&&e.target.value.trim()){save({quickTasks:data.current.quickTasks.map(x=>x.id===q.id?{...x,text:e.target.value.trim()}:x)});setEditQuicky(null);setMenuQuicky(null);}}} style={{ width:"100%",padding:8,borderRadius:6,border:`1px solid ${theme.brd}`,background:theme.inpBg||theme.card,color:theme.tx,fontSize:13,fontFamily:"'DM Sans',sans-serif",boxSizing:"border-box" }}/>
+                            </div>:<div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
+                              <button onClick={()=>setEditQuicky(q.id)} style={{ background:theme.btn2,border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:600,color:theme.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>Edit</button>
+                              <ConfirmBtn label="Delete" confirmLabel="Sure?" onConfirm={()=>{save({quickTasks:data.current.quickTasks.filter(x=>x.id!==q.id)});setMenuQuicky(null);}} style={{ background:theme.danger,border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}/>
+                            </div>}
+                          </div>}
+                          {isExp&&<SubItems items={subs} onUpdate={s=>updateQuickySubs(q.id,s)}/>}
+                        </div>
+                      );
+                    }
+                    // Task
+                    const task = item;
+                    const cl = clients.find(c=>c.id===task.clientId);
+                    const dl = deals.find(d=>d.id===task.dealId);
+                    return <FlatTaskRow key={task.id} task={task} clientName={cl?.name} dealName={dl?.isMisc?null:dl?.name}
+                      exp={expTask===task.id} onTog={()=>{setExpTask(expTask===task.id?null:task.id);setMenuTask(null);}}
+                      menu={menuTask===task.id} onTogMenu={()=>{setMenuTask(menuTask===task.id?null:task.id);setExpTask(null);}}
+                      onSetStatus={s=>setStatus(task.id,s)}
+                      onToggleFlag={()=>toggleFlag(task.id)}
+                      onEdit={()=>{setEditingTask(task);setSheet("editTask");}}
+                      onDel={()=>deleteTask(task.id)}
+                      onUpdateSubs={subs=>updateTaskSubs(task.id,subs)}
+                      onDragStart={onDragStart}
+                      hideDue={true}/>;
+                  };
+
+                  return <>
+                    {todayCount>0&&<div style={{ marginBottom:12 }}>
+                      <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:8 }}>
+                        <span style={{ fontSize:11,fontWeight:700,color:"#FF3B30",textTransform:"uppercase",letterSpacing:".05em" }}>Today ({todayCount})</span>
+                      </div>
+                      {todayAll.length>0&&<DragList items={todayAll} onReorder={reorderMixed} renderItem={renderMixedItem}/>}
+                      {doneQT.map(q=>(
+                        <div key={q.id} style={{ display:"flex",alignItems:"center",gap:4,padding:"7px 8px 7px 10px",marginBottom:4,background:theme.card,borderRadius:8,boxShadow:theme.cardShadow,border:theme.cardBorder,opacity:.4,transition:"opacity .3s" }}>
+                          <button onClick={()=>save({quickTasks:data.current.quickTasks.map(x=>x.id===q.id?{...x,done:false}:x)})} style={{ background:"none",border:"none",fontSize:14,cursor:"pointer",color:"#30D158",padding:0,flexShrink:0,minWidth:24,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>●</button>
+                          <div style={{ flex:1,minWidth:0 }}>
+                            <div style={{ fontSize:12,fontWeight:600,color:theme.tx3,textDecoration:"line-through" }}>{q.text}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>}
+                  </>;
+                })()}
+                {[
+                  {items:dueTomorrow,label:`Tomorrow (${dueTomorrow.length})`,color:"#B8860B",hd:true},
+                  {items:dueLater,label:`Upcoming (${dueLater.length})`,color:theme.accent,hd:false},
+                  {items:noDate,label:`No Date (${noDate.length})`,color:theme.tx3,hd:true},
+                ].filter(g=>g.items.length>0).map(g=>(
+                  <div key={g.label} style={{ marginBottom:12 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:8 }}>
+                      {g.dot&&<div style={{ width:8,height:8,borderRadius:4,background:g.color }}/>}
+                      <span style={{ fontSize:11,fontWeight:700,color:g.color,textTransform:"uppercase",letterSpacing:".05em" }}>{g.label}</span>
+                    </div>
+                    {renderSection(g.items,g.hd)}
+                  </div>
+                ))}
+              </div>;
+            })()}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ CLIENTS ═══ */}
+        {view==="clients"&&!selClient&&(
+          <div style={{ padding:"16px 16px 100px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+              <h3 style={{ margin:0,fontSize:16,fontWeight:700,color:theme.tx }}>Matters</h3>
+              <button onClick={()=>setSheet("client")} style={{ background:theme.btn,border:"none",borderRadius:20,color:theme.btnTx,fontSize:13,fontWeight:600,padding:"9px 18px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Client</button>
+            </div>
+            {clients.length===0?(
+              <div style={{ textAlign:"center",padding:"48px 20px",color:theme.tx2 }}>
+                <div style={{ fontSize:40,marginBottom:12 }}>💲</div>
+                <div style={{ fontSize:16,fontWeight:600,color:theme.tx }}>No clients yet</div>
+                <div style={{ fontSize:13,marginTop:4 }}>Tap "+ Client" to add one.</div>
+              </div>
+            ):sortedClients.map(cl=>{
+              const cd=deals.filter(d=>d.clientId===cl.id);
+              const ct=tasks.filter(t=>t.clientId===cl.id);
+              const dn=ct.filter(t=>t.status==="complete").length;
+              const od=ct.filter(t=>t.status!=="complete"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).length;
+              return (
+                <div key={cl.id} onClick={()=>{setSelClient(cl.id);setClientTab("matters");}} style={{ background:theme.card,borderRadius:14,padding:"16px 18px",marginBottom:10,border:"none",boxShadow:theme.cardShadow,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                    <div><div style={{ fontSize:15,fontWeight:700,color:theme.tx }}>{cl.name}</div>
+                      <div style={{ fontSize:12,color:theme.tx2,marginTop:3,display:"flex",gap:10 }}>
+                        <span>{cd.length} matter{cd.length!==1?"s":""}</span><span>{dn}/{ct.length} tasks</span>
+                        {od>0&&<span style={{ color:"#FF3B30",fontWeight:700 }}>{od} overdue</span>}
+                        {ct.length>0&&dn===ct.length&&<span style={{ color:"#30D158",fontWeight:700 }}>✓ All caught up</span>}
+                      </div>
+                    </div>
+                    <span style={{ color:theme.tx3,fontSize:16 }}>›</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {view==="clients"&&selClient&&(()=>{
+          const cl=clients.find(c=>c.id===selClient);
+          if(!cl) return <div style={{ padding:20,color:theme.tx2 }}>Client not found.</div>;
+          const allDeals=deals.filter(d=>d.clientId===cl.id);
+          const regularDeals=allDeals.filter(d=>!d.isMisc).sort((a,b)=>a.name.localeCompare(b.name));
+          const miscDeal=allDeals.find(d=>d.isMisc);
+          const sortedDeals=[...regularDeals,...(miscDeal?[miscDeal]:[])];
+          const ct=tasks.filter(t=>t.clientId===cl.id);
+          const dn=ct.filter(t=>t.status==="complete").length;
+          return (
+            <div style={{ padding:"16px 16px 100px" }}>
+              <div style={{ background:theme.card,borderRadius:14,padding:20,border:"none",boxShadow:theme.cardShadow,marginBottom:16 }}>
+                <div style={{ fontSize:20,fontWeight:700,fontFamily:"'DM Sans',sans-serif",color:theme.tx }}>{cl.name}</div>
+                {cl.isAdmin&&<div style={{ fontSize:12,color:theme.tx2,marginTop:2,fontStyle:"italic" }}>Internal & administrative tasks</div>}
+                <div style={{ fontSize:13,color:theme.tx2,marginTop:6,display:"flex",gap:16 }}>
+                  <span>{allDeals.length} matter{allDeals.length!==1?"s":""}</span><span>{ct.length} task{ct.length!==1?"s":""}</span><span>{dn} complete</span>
+                </div>
+                {!cl.isAdmin&&<div style={{ display:"flex",gap:10,marginTop:16 }}>
+                  <button onClick={()=>{setEditingClient(cl);setSheet("editClient");}} style={{ flex:1,padding:12,background:theme.btn2,border:"none",borderRadius:10,fontSize:14,fontWeight:600,color:theme.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:44 }}>Rename</button>
+                  <ConfirmBtn label="Delete" confirmLabel="Tap to confirm" onConfirm={()=>deleteClient(cl.id)} style={{ flex:1,padding:12,background:theme.danger,border:"none",borderRadius:10,fontSize:14,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:44 }}/>
+                </div>}
+              </div>
+
+              {/* Matters / Notes toggle */}
+              <div style={{ display:"flex",gap:0,background:theme.chip,borderRadius:10,marginBottom:12,padding:4 }}>
+                {[{k:"matters",l:"Matters"},{k:"notes",l:"Notes"}].map(({k,l})=>(
+                  <button key={k} onClick={()=>setClientTab(k)} style={{
+                    flex:1,padding:"8px 0",border:"none",borderRadius:8,fontSize:12,fontWeight:700,
+                    background:clientTab===k?theme.btn:"transparent",
+                    color:clientTab===k?theme.btnTx:theme.tx3,
+                    cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"all .2s",
+                    textTransform:"uppercase",letterSpacing:".04em",
+                  }}>{l}</button>
+                ))}
+              </div>
+
+              {clientTab==="notes"&&<div>
+                <textarea
+                  defaultValue={clientNotes[cl.id]||""}
+                  onBlur={e=>{const v=e.target.value;save({clientNotes:{...data.current.clientNotes,[cl.id]:v}});}}
+                  placeholder={`Notes about ${cl.name}...`}
+                  style={{ width:"100%",minHeight:160,padding:14,borderRadius:12,border:`1px solid ${theme.brd}`,background:theme.card,color:theme.tx,fontSize:14,fontFamily:"'DM Sans',sans-serif",boxSizing:"border-box",resize:"vertical",outline:"none",lineHeight:1.6 }}/>
+                <div style={{ fontSize:11,color:theme.tx3,marginTop:4 }}>Saves automatically when you tap away.</div>
+              </div>}
+
+              {clientTab==="matters"&&<>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+                <h3 style={{ margin:0,fontSize:14,fontWeight:700,color:theme.tx2,textTransform:"uppercase",letterSpacing:".05em" }}>Matters</h3>
+                <button onClick={()=>{setPreClient(cl.id);setSheet("deal");}} style={{ background:theme.chip,border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,color:theme.chipTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Matter</button>
+              </div>
+              {/* Show completed toggle */}
+              {dn>0&&<button onClick={()=>setShowCompleted(s=>({...s,[cl.id]:!s[cl.id]}))} style={{
+                display:"flex",alignItems:"center",gap:6,padding:"8px 12px",marginBottom:10,
+                background:showCompleted[cl.id]?`${"#30D158"}15`:theme.chip,border:"none",borderRadius:8,
+                fontSize:12,fontWeight:600,color:showCompleted[cl.id]?"#30D158":theme.tx3,
+                cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
+              }}>{showCompleted[cl.id]?"● Hide":"○ Show"} completed ({dn})</button>}
+              {sortedDeals.map(deal=>{
+                const dtAll=tasks.filter(t=>t.dealId===deal.id);
+                const dt=showCompleted[cl.id]?dtAll:dtAll.filter(t=>t.status!=="complete");
+                const dd=dtAll.filter(t=>t.status==="complete").length;
+                const dOpen=expDeals[deal.id];
+                return (<div key={deal.id} style={{ background:theme.card,borderRadius:12,marginBottom:8,border:"none",boxShadow:theme.cardShadow,overflow:"hidden" }}>
+                  <div onClick={()=>togDeal(deal.id)} style={{ padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+                    <span style={{ fontSize:10,color:theme.tx3,transition:"transform .2s",transform:dOpen?"rotate(90deg)":"rotate(0)",flexShrink:0 }}>▶</span>
+                    <div style={{ flex:1,minWidth:0 }}>
+                      <div style={{ fontSize:15,fontWeight:600,color:deal.isMisc?theme.tx2:theme.tx,fontStyle:deal.isMisc?"italic":"normal" }}>{deal.name}</div>
+                      <div style={{ fontSize:12,color:theme.tx2,marginTop:2 }}>{dd}/{dtAll.length} tasks complete</div>
+                    </div>
+                    {!deal.isMisc&&<div style={{ display:"flex",gap:4,flexShrink:0 }}>
+                      <button onClick={e=>{e.stopPropagation();setEditingDeal(deal);setSheet("editDeal");}} style={{ background:"none",border:"none",color:theme.tx2,fontSize:12,fontWeight:600,cursor:"pointer",padding:"8px 10px",borderRadius:8,fontFamily:"'DM Sans',sans-serif",minHeight:36 }}>Edit</button>
+                      <ConfirmBtn label="Delete" confirmLabel="Confirm?" onConfirm={()=>deleteDeal(deal.id)} style={{ background:"none",border:"none",color:theme.dangerTx,fontSize:12,fontWeight:600,cursor:"pointer",padding:"8px 10px",borderRadius:8,fontFamily:"'DM Sans',sans-serif",minHeight:36 }}/>
+                    </div>}
+                  </div>
+                  {dOpen&&<div style={{ borderTop:`1px solid ${theme.brd2}` }}>
+                    {dt.length>0?<ReorderTaskList tasks={dt} dealId={deal.id} expTask={expTask} setExpTask={setExpTask}
+                      onCycle={cycleStatus} onSetStatus={setStatus}
+                      onEdit={task=>{setEditingTask(task);setSheet("editTask");}}
+                      onDel={deleteTask} onReorder={reorderTasks}/>
+                    :<div style={{ padding:"14px 16px",fontSize:13,color:theme.tx3,fontStyle:"italic" }}>{showCompleted[cl.id]?"No tasks yet.":"No active tasks."}</div>}
+                    <button onClick={()=>{setPreClient(cl.id);setPreDeal(deal.id);setPreDeadline(todayStr());setEditingTask(null);setSheet("task");}} style={{ display:"flex",alignItems:"center",gap:6,padding:"12px 16px",background:"none",border:"none",color:theme.accent,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%",minHeight:44,borderTop:`1px solid ${theme.brd2}` }}>+ Add Task</button>
+                  </div>}
+                </div>);
+              })}
+              {ct.length>0&&dn===ct.length&&(
+                <div style={{ textAlign:"center",padding:"24px 20px",marginTop:8 }}>
+                  <div style={{ fontSize:28,marginBottom:8 }}>🎉</div>
+                  <div style={{ fontSize:15,fontWeight:700,color:"#30D158" }}>All Caught Up!</div>
+                  <div style={{ fontSize:12,color:theme.tx2,marginTop:4 }}>Every task for {cl.name} is complete.</div>
+                </div>
+              )}
+              </>}
+            </div>
+          );
+        })()}
+
+        {/* ═══ TEAM ═══ */}
+        {view==="team"&&!selAssociate&&(
+          <div style={{ padding:"16px 16px 100px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+              <h3 style={{ margin:0,fontSize:16,fontWeight:700,color:theme.tx }}>Team</h3>
+              <button onClick={()=>setSheet("associate")} style={{ background:theme.btn,border:"none",borderRadius:20,color:theme.btnTx,fontSize:13,fontWeight:600,padding:"9px 18px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Attorney</button>
+            </div>
+            {associates.filter(a=>a!=="Unassigned").length>1&&<div style={{ marginBottom:10 }}>
+              <select value={assocSort} onChange={e=>setAssocSort(e.target.value)} style={{ border:"none",background:"none",fontSize:12,color:theme.accent,fontWeight:600,fontFamily:"'DM Sans',sans-serif",cursor:"pointer",padding:"4px 0" }}>
+                <option value="name">Sort: Name</option>
+                <option value="tasks">Sort: Most Tasks</option>
+                <option value="active">Sort: Most Active</option>
+                <option value="overdue">Sort: Most Overdue</option>
+              </select>
+            </div>}
+            {associates.filter(a=>a!=="Unassigned").length===0?(
+              <div style={{ textAlign:"center",padding:"48px 20px",color:theme.tx2 }}><div style={{ fontSize:32,marginBottom:8 }}>👥</div><div style={{ fontSize:16,fontWeight:600,color:theme.tx }}>No Attorneys Yet</div><div style={{ fontSize:13,marginTop:4 }}>Tap "+ Attorney" to add one.</div></div>
+            ):[...associates.filter(a=>a!=="Unassigned")].sort((a,b)=>{
+              const aTasks=tasks.filter(t=>t.assignee===a); const bTasks=tasks.filter(t=>t.assignee===b);
+              const aActive=aTasks.filter(t=>t.status!=="complete").length; const bActive=bTasks.filter(t=>t.status!=="complete").length;
+              const aOd=aTasks.filter(t=>t.status!=="complete"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).length;
+              const bOd=bTasks.filter(t=>t.status!=="complete"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).length;
+              if(assocSort==="name") return a.localeCompare(b);
+              if(assocSort==="tasks") return bTasks.length-aTasks.length;
+              if(assocSort==="active") return bActive-aActive;
+              if(assocSort==="overdue") return bOd-aOd;
+              return 0;
+            }).map(name=>{
+              const at=tasks.filter(t=>t.assignee===name); const p=at.filter(t=>t.status!=="complete").length; const od=at.filter(t=>t.status!=="complete"&&daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).length;
+              return (<div key={name} onClick={()=>{setSelAssociate(name);setTeamTab("tasks");}} style={{ background:theme.card,borderRadius:14,padding:"16px 18px",marginBottom:8,border:"none",boxShadow:theme.cardShadow,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                  <div><div style={{ fontSize:15,fontWeight:700,color:theme.tx }}>{name}{teamRoles[name]&&<span style={{ fontSize:11,fontWeight:500,color:theme.tx2,marginLeft:6 }}>{teamRoles[name]}</span>}</div><div style={{ fontSize:12,color:theme.tx2,marginTop:3,display:"flex",gap:10 }}><span>{at.length} total</span><span>{p} active</span>{od>0&&<span style={{ color:"#FF3B30",fontWeight:700 }}>{od} overdue</span>}</div></div>
+                  <span style={{ color:theme.tx3,fontSize:16 }}>›</span>
+                </div>
+              </div>);
+            })}
+          </div>
+        )}
+
+        {/* ── Associate drill-down ── */}
+        {view==="team"&&selAssociate&&(()=>{
+          const at=tasks.filter(t=>t.assignee===selAssociate);
+          const active=at.filter(t=>t.status!=="complete");
+          const completed=at.filter(t=>t.status==="complete");
+          const overdue=active.filter(t=>daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+          const upcoming=active.filter(t=>!(daysUntil(t.deadline)!==null&&daysUntil(t.deadline)<0)).sort((a,b)=>{if(!a.deadline)return 1;if(!b.deadline)return -1;return a.deadline.localeCompare(b.deadline);});
+          return (
+            <div style={{ padding:"16px 16px 100px" }}>
+              <div style={{ background:theme.card,borderRadius:14,padding:"18px 20px",border:"none",boxShadow:theme.cardShadow,marginBottom:16 }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                  <div>
+                    <div style={{ fontSize:20,fontWeight:700,fontFamily:"'DM Sans',sans-serif",color:theme.tx }}>{selAssociate}{teamRoles[selAssociate]&&<span style={{ fontSize:13,fontWeight:500,color:theme.tx2,marginLeft:8 }}>{teamRoles[selAssociate]}</span>}</div>
+                    <div style={{ fontSize:13,color:theme.tx2,marginTop:4,display:"flex",gap:16 }}>
+                      <span>{active.length} active</span>
+                      <span>{completed.length} completed</span>
+                      {overdue.length>0&&<span style={{ color:"#FF3B30",fontWeight:700 }}>{overdue.length} overdue</span>}
+                    </div>
+                  </div>
+                  <ConfirmBtn label="Remove" confirmLabel="Confirm?" onConfirm={()=>{removeAssociate(selAssociate);setSelAssociate(null);}} style={{ background:theme.danger,border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:36 }}/>
+                </div>
+              </div>
+
+              {/* Tasks / Notes toggle */}
+              <div style={{ display:"flex",gap:0,background:theme.chip,borderRadius:10,marginBottom:12,padding:4 }}>
+                {[{k:"tasks",l:"Tasks"},{k:"notes",l:"Notes"}].map(({k,l})=>(
+                  <button key={k} onClick={()=>setTeamTab(k)} style={{
+                    flex:1,padding:"8px 0",border:"none",borderRadius:8,fontSize:12,fontWeight:700,
+                    background:teamTab===k?theme.btn:"transparent",
+                    color:teamTab===k?theme.btnTx:theme.tx3,
+                    cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"all .2s",
+                    textTransform:"uppercase",letterSpacing:".04em",
+                  }}>{l}</button>
+                ))}
+              </div>
+
+              {teamTab==="notes"&&<div>
+                <textarea
+                  defaultValue={teamNotes[selAssociate]||""}
+                  onBlur={e=>{const v=e.target.value;save({teamNotes:{...data.current.teamNotes,[selAssociate]:v}});}}
+                  placeholder={`Notes about ${selAssociate}...`}
+                  style={{ width:"100%",minHeight:160,padding:14,borderRadius:12,border:`1px solid ${theme.brd}`,background:theme.card,color:theme.tx,fontSize:14,fontFamily:"'DM Sans',sans-serif",boxSizing:"border-box",resize:"vertical",outline:"none",lineHeight:1.6 }}/>
+                <div style={{ fontSize:11,color:theme.tx3,marginTop:4 }}>Saves automatically when you tap away.</div>
+              </div>}
+
+              {teamTab==="tasks"&&<>
+              {active.length===0&&completed.length===0&&(
+                <div style={{ textAlign:"center",padding:"40px 20px",color:theme.tx2 }}>
+                  <div style={{ fontSize:14,fontWeight:600,color:theme.tx }}>No tasks assigned</div>
+                  <div style={{ fontSize:13,marginTop:4 }}>Assign tasks to {selAssociate} from the Checklist or Matters tab.</div>
+                </div>
+              )}
+
+              {overdue.length>0&&<div style={{ marginBottom:12 }}>
+                <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:8 }}>
+                  <div style={{ width:8,height:8,borderRadius:4,background:"#FF3B30" }}/>
+                  <span style={{ fontSize:11,fontWeight:700,color:"#FF3B30",textTransform:"uppercase",letterSpacing:".05em" }}>Overdue ({overdue.length})</span>
+                </div>
+                {overdue.map(task=>{
+                  const cl=clients.find(c=>c.id===task.clientId);
+                  const dl=deals.find(d=>d.id===task.dealId);
+                  return <FlatTaskRow key={task.id} task={task} clientName={cl?.name} dealName={dl?.isMisc?null:dl?.name}
+                    exp={expTask===task.id} onTog={()=>setExpTask(expTask===task.id?null:task.id)}
+                    onSetStatus={s=>setStatus(task.id,s)}
+                    onEdit={()=>{setEditingTask(task);setSheet("editTask");}}
+                    onDel={()=>deleteTask(task.id)}/>;
+                })}
+              </div>}
+
+              {upcoming.length>0&&<div>
+                {overdue.length>0&&<div style={{ fontSize:11,fontWeight:700,color:theme.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:8 }}>Active</div>}
+                {upcoming.map(task=>{
+                  const cl=clients.find(c=>c.id===task.clientId);
+                  const dl=deals.find(d=>d.id===task.dealId);
+                  return <FlatTaskRow key={task.id} task={task} clientName={cl?.name} dealName={dl?.isMisc?null:dl?.name}
+                    exp={expTask===task.id} onTog={()=>setExpTask(expTask===task.id?null:task.id)}
+                    onSetStatus={s=>setStatus(task.id,s)}
+                    onEdit={()=>{setEditingTask(task);setSheet("editTask");}}
+                    onDel={()=>deleteTask(task.id)}/>;
+                })}
+              </div>}
+
+              {completed.length>0&&<div style={{ marginTop:12 }}>
+                <button onClick={()=>setShowCompleted(s=>({...s,["__team__"]:!s["__team__"]}))} style={{
+                  display:"flex",alignItems:"center",gap:6,padding:"8px 12px",marginBottom:10,
+                  background:showCompleted["__team__"]?`${"#30D158"}15`:theme.chip,border:"none",borderRadius:8,
+                  fontSize:12,fontWeight:600,color:showCompleted["__team__"]?"#30D158":theme.tx3,
+                  cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
+                }}>{showCompleted["__team__"]?"● Hide":"○ Show"} completed ({completed.length})</button>
+                {showCompleted["__team__"]&&completed.map(task=>{
+                  const cl=clients.find(c=>c.id===task.clientId);
+                  const dl=deals.find(d=>d.id===task.dealId);
+                  return <FlatTaskRow key={task.id} task={task} clientName={cl?.name} dealName={dl?.isMisc?null:dl?.name}
+                    exp={expTask===task.id} onTog={()=>setExpTask(expTask===task.id?null:task.id)}
+                    onSetStatus={s=>setStatus(task.id,s)}
+                    onEdit={()=>{setEditingTask(task);setSheet("editTask");}}
+                    onDel={()=>deleteTask(task.id)}/>;
+                })}
+              </div>}
+              </>}
+            </div>
+          );
+        })()}
+
+        {/* ═══ CALENDAR ═══ */}
+        {view==="calendar"&&(
+          <div style={{ padding:"16px 16px 100px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+              <h3 style={{ margin:0,fontSize:16,fontWeight:700,color:theme.tx }}>Calendar</h3>
+              <button onClick={()=>setSheet("reminder")} style={{ background:theme.btn,border:"none",borderRadius:20,color:theme.btnTx,fontSize:13,fontWeight:600,padding:"9px 18px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>+ Reminder</button>
+            </div>
+            <MonthCal year={calYear} month={calMonth} tasks={activeTasks} reminders={reminders} selDate={calDate}
+              onSelect={d=>{setCalDate(calDate===d?null:d);}}
+              onPrev={()=>{ if(calMonth===0){setCalMonth(11);setCalYear(calYear-1);}else setCalMonth(calMonth-1); }}
+              onNext={()=>{ if(calMonth===11){setCalMonth(0);setCalYear(calYear+1);}else setCalMonth(calMonth+1); }}
+            />
+
+            {/* Selected date header */}
+            {calDate&&<div style={{ padding:"10px 0 4px",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+              <span style={{ fontSize:13,fontWeight:700,color:theme.tx }}>{new Date(calDate+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}</span>
+              <button onClick={()=>setCalDate(null)} style={{ background:theme.btn2,border:"none",borderRadius:12,fontSize:10,fontWeight:700,color:theme.btn2Tx,cursor:"pointer",padding:"4px 10px",fontFamily:"'DM Sans',sans-serif" }}>Clear</button>
+            </div>}
+
+            {/* Tasks / Reminders toggle */}
+            <div style={{ display:"flex",gap:0,background:theme.chip,borderRadius:10,marginTop:10,marginBottom:12,padding:4 }}>
+              {[{k:"tasks",l:"Tasks"},{k:"reminders",l:"Reminders"}].map(({k,l})=>(
+                <button key={k} onClick={()=>setCalTab(k)} style={{
+                  flex:1,padding:"8px 0",border:"none",borderRadius:8,fontSize:12,fontWeight:700,
+                  background:calTab===k?theme.btn:"transparent",
+                  color:calTab===k?theme.btnTx:theme.tx3,
+                  cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"all .2s",
+                  textTransform:"uppercase",letterSpacing:".04em",
+                }}>{l}</button>
+              ))}
+            </div>
+
+            {/* Tasks view */}
+            {calTab==="tasks"&&(()=>{
+              const calTasks = calDate
+                ? activeTasks.filter(t=>t.deadline===calDate)
+                : activeTasks.filter(t=>t.status!=="complete"&&t.deadline&&daysUntil(t.deadline)<=7&&daysUntil(t.deadline)>=0).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+              const label = calDate?"Tasks due this date":"Tasks due within 7 days";
+              return <div>
+                <div style={{ fontSize:11,fontWeight:700,color:"#FF3B30",textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>
+                  {label}{calTasks.length>0&&` (${calTasks.length})`}
+                </div>
+                {calTasks.length===0&&<div style={{ textAlign:"center",padding:"24px 0",color:theme.tx3,fontSize:13 }}>{calDate?"No tasks due this date":"No tasks due in the next 7 days"}</div>}
+                {calTasks.map(task=>{
+                  const cl=clients.find(c=>c.id===task.clientId);
+                  const done=task.status==="complete";
+                  const flagged=task.flagged&&!done;
+                  return <div key={task.id} style={{ background:flagged?(dark?"#1A0A10":"#FFF0F0"):theme.card,borderRadius:8,marginBottom:4,boxShadow:theme.cardShadow,border:flagged?"1px solid #FF3B30":theme.cardBorder,borderLeft:flagged?`3px solid #FF3B30`:undefined,opacity:done?.45:1,overflow:"hidden" }}>
+                    <div style={{ padding:"7px 8px 7px 10px",display:"flex",alignItems:"center",gap:4 }}>
+                      <button onClick={()=>setStatus(task.id,done?"active":"complete")} style={{ background:"none",border:"none",fontSize:14,cursor:"pointer",color:done?"#30D158":flagged?"#FF3B30":"#999",padding:0,flexShrink:0,minWidth:24,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>{done?"●":"○"}</button>
+                      <div style={{ flex:1,minWidth:0 }}>
+                        <div style={{ fontSize:12,fontWeight:600,color:done?theme.tx3:flagged?"#FF3B30":theme.tx,textDecoration:done?"line-through":"none" }}>{flagged?"🚩 ":""}{cl?`${cl.name} - `:""}{task.title}</div>
+                      </div>
+                      {!calDate&&<DueBadge date={task.deadline}/>}
+                    </div>
+                  </div>;
+                })}
+              </div>;
+            })()}
+
+            {/* Reminders view */}
+            {calTab==="reminders"&&(()=>{
+              const calReminders = calDate
+                ? reminders.filter(r=>r.date===calDate)
+                : reminders.filter(r=>!r.done&&r.date<=todayStr());
+              const sorted = calReminders.sort((a,b)=>{if(a.done!==b.done) return a.done?1:-1; return a.date.localeCompare(b.date)||(a.reminderOrder||0)-(b.reminderOrder||0);});
+              return <div>
+                <div style={{ fontSize:11,fontWeight:700,color:"#B8860B",textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>
+                  {calDate?"Reminders for this date":"Upcoming Reminders"}{sorted.length>0&&` (${sorted.length})`}
+                </div>
+                {sorted.length===0&&<div style={{ textAlign:"center",padding:"24px 0",color:theme.tx3,fontSize:13 }}>{calDate?"No reminders for this date":"No upcoming reminders"}</div>}
+                {sorted.map(r=>{
+                  const isExp = expReminder===r.id;
+                  return (
+                    <div key={r.id} style={{ background:r.done?"transparent":theme.card,borderRadius:12,marginBottom:8,border:r.done?"none":theme.cardBorder,boxShadow:r.done?"none":theme.cardShadow,opacity:r.done?.45:1,overflow:"hidden",borderLeft:`3px solid #B8860B` }}>
+                      <div onClick={()=>setExpReminder(isExp?null:r.id)} style={{ padding:"14px 12px 14px 14px",display:"flex",alignItems:"center",gap:6,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+                        <button onClick={e=>{e.stopPropagation();save({reminders:data.current.reminders.map(x=>x.id===r.id?{...x,done:!r.done}:x)});}} style={{ background:"none",border:"none",fontSize:20,cursor:"pointer",color:r.done?"#30D158":"#999",padding:0,flexShrink:0,minWidth:36,minHeight:36,display:"flex",alignItems:"center",justifyContent:"center" }}>{r.done?"●":"○"}</button>
+                        <div style={{ flex:1,minWidth:0 }}>
+                          <div style={{ fontSize:14,fontWeight:600,color:r.done?theme.tx3:theme.tx,textDecoration:r.done?"line-through":"none" }}>{r.text}</div>
+                          {!calDate&&<div style={{ fontSize:11,color:"#B8860B",marginTop:2 }}>{r.date===todayStr()?"Today":r.date.slice(5)}</div>}
+                        </div>
+                      </div>
+                      {isExp&&<div style={{ padding:"0 16px 14px",borderTop:`1px solid ${theme.brd2}` }}>
+                        <div style={{ display:"flex",gap:8,justifyContent:"flex-end",marginTop:8 }}>
+                          <ConfirmBtn label="Delete" confirmLabel="Confirm?" onConfirm={()=>{save({reminders:data.current.reminders.filter(x=>x.id!==r.id)});setExpReminder(null);}} style={{ background:theme.danger,border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:40 }}/>
+                        </div>
+                      </div>}
+                    </div>
+                  );
+                })}
+              </div>;
+            })()}
+          </div>
+        )}
+
+        {/* ═══ SETTINGS ═══ */}
+        {view==="settings"&&(
+          <div style={{ padding:"16px 16px 100px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+              <h3 style={{ margin:0,fontSize:16,fontWeight:700,color:theme.tx }}>Settings</h3>
+            </div>
+            <div style={{ background:theme.card,borderRadius:14,border:"none",boxShadow:theme.cardShadow,overflow:"hidden" }}>
+              <div style={{ padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                <div><div style={{ fontSize:15,fontWeight:600,color:theme.tx }}>Dark Mode</div><div style={{ fontSize:12,color:theme.tx2,marginTop:2 }}>Switch between light and dark themes</div></div>
+                <Toggle on={dark} set={v=>save({dark:v})}/>
+              </div>
+            </div>
+            <div style={{ marginTop:12,padding:"10px 16px",background:storageOk?`#30D15815`:`#FF3B3015`,borderRadius:10,display:"flex",alignItems:"center",gap:8 }}>
+              <div style={{ width:8,height:8,borderRadius:4,background:storageOk?"#30D158":"#FF3B30" }}/>
+              <span style={{ fontSize:12,fontWeight:600,color:storageOk?"#30D158":"#FF3B30" }}>{storageOk?"Storage active":"Storage unreliable — export your data regularly"}</span>
+            </div>
+            <div style={{ marginTop:24,background:theme.card,borderRadius:14,border:"none",boxShadow:theme.cardShadow,overflow:"hidden" }}>
+              <div style={{ padding:"16px 18px",borderBottom:`1px solid ${theme.brd2}` }}><div style={{ fontSize:11,fontWeight:700,color:theme.tx2,textTransform:"uppercase",letterSpacing:".06em" }}>Summary</div></div>
+              {[{l:"Clients",v:clients.length},{l:"Matters",v:deals.length},{l:"Checklist",v:tasks.length},{l:"Associates",v:associates.filter(a=>a!=="Unassigned").length},{l:"Reminders",v:reminders.length},{l:"Templates",v:templates.length}].map((x,i)=>(
+                <div key={x.l} style={{ padding:"14px 18px",display:"flex",justifyContent:"space-between",borderBottom:i<5?`1px solid ${theme.brd2}`:"none" }}>
+                  <span style={{ fontSize:14,color:theme.tx }}>{x.l}</span>
+                  <span style={{ fontSize:14,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:theme.tx2 }}>{x.v}</span>
+                </div>
+              ))}
+            </div>
+            {templates.length>0&&<div style={{ marginTop:24 }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+                <h3 style={{ margin:0,fontSize:14,fontWeight:700,color:theme.tx2,textTransform:"uppercase",letterSpacing:".05em" }}>★ Favorites</h3>
+              </div>
+              <div style={{ background:theme.card,borderRadius:14,border:"none",boxShadow:theme.cardShadow,overflow:"hidden" }}>
+                {templates.map((tmpl,i)=>{
+                  const cl=clients.find(c=>c.id===tmpl.clientId);
+                  return (
+                    <div key={tmpl.id} style={{ padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:i<templates.length-1?`1px solid ${theme.brd2}`:"none" }}>
+                      <div style={{ minWidth:0 }}>
+                        <div style={{ fontSize:14,fontWeight:600,color:theme.tx }}>{tmpl.title}</div>
+                        <div style={{ fontSize:11,color:theme.tx2,marginTop:2 }}>{cl?.name||"—"}</div>
+                      </div>
+                      <ConfirmBtn label="Remove" confirmLabel="Sure?" onConfirm={()=>save({templates:data.current.templates.filter(t=>t.id!==tmpl.id)})} style={{ background:"none",border:"none",color:theme.dangerTx,fontSize:12,fontWeight:600,cursor:"pointer",padding:"8px 10px",borderRadius:8,fontFamily:"'DM Sans',sans-serif",minHeight:36,flexShrink:0 }}/>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>}
+            <div style={{ marginTop:24 }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+                <h3 style={{ margin:0,fontSize:14,fontWeight:700,color:theme.tx2,textTransform:"uppercase",letterSpacing:".05em" }}>Completed Archive</h3>
+                <span style={{ fontSize:12,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:theme.tx3 }}>{tasks.filter(t=>t.status==="complete").length}</span>
+              </div>
+              {(()=>{
+                const comp = tasks.filter(t=>t.status==="complete");
+                if(comp.length===0) return <div style={{ background:theme.card,borderRadius:14,boxShadow:theme.cardShadow,padding:"20px 18px",textAlign:"center",color:theme.tx3,fontSize:13 }}>No completed tasks yet.</div>;
+                const now = new Date(); now.setHours(0,0,0,0);
+                const old30 = comp.filter(t=>{
+                  if(!t.completedAt) return true;
+                  return (now - new Date(t.completedAt)) > 30*86400000;
+                });
+                const grouped = {};
+                comp.forEach(t=>{
+                  const cl = clients.find(c=>c.id===t.clientId);
+                  const name = cl?.name||"Unknown";
+                  if(!grouped[name]) grouped[name]=[];
+                  grouped[name].push(t);
+                });
+                const sortedGroups = Object.keys(grouped).sort((a,b)=>a==="Administrative"?-1:b==="Administrative"?1:a.localeCompare(b));
+                return <div>
+                  <div style={{ display:"flex",gap:8,marginBottom:10 }}>
+                    {old30.length>0&&<ConfirmBtn label={`Clear 30+ days (${old30.length})`} confirmLabel="Confirm?" onConfirm={()=>{
+                      const ids = new Set(old30.map(t=>t.id));
+                      save({tasks:data.current.tasks.filter(t=>!ids.has(t.id))});
+                    }} style={{ flex:1,padding:10,background:theme.btn2,border:"none",borderRadius:10,fontSize:11,fontWeight:600,color:theme.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:36 }}/>}
+                    <ConfirmBtn label={`Clear all (${comp.length})`} confirmLabel="Confirm?" onConfirm={()=>{
+                      save({tasks:data.current.tasks.filter(t=>t.status!=="complete")});
+                    }} style={{ flex:1,padding:10,background:theme.danger,border:"none",borderRadius:10,fontSize:11,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:36 }}/>
+                  </div>
+                  <button onClick={()=>setShowArchive(!showArchive)} style={{ width:"100%",padding:12,background:theme.card,border:"none",borderRadius:14,boxShadow:theme.cardShadow,fontSize:13,fontWeight:600,color:theme.tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                    <span>{showArchive?"Hide":"Show"} completed tasks</span>
+                    <span style={{ fontSize:12,color:theme.tx3 }}>{showArchive?"▼":"▶"}</span>
+                  </button>
+                  {showArchive&&<div style={{ marginTop:10 }}>
+                    {sortedGroups.map(name=>(
+                      <div key={name} style={{ marginBottom:12 }}>
+                        <div style={{ fontSize:11,fontWeight:700,color:theme.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>{name} ({grouped[name].length})</div>
+                        <div style={{ background:theme.card,borderRadius:14,boxShadow:theme.cardShadow,overflow:"hidden" }}>
+                          {grouped[name].sort((a,b)=>(b.completedAt||b.createdAt||"").localeCompare(a.completedAt||a.createdAt||"")).map((t,i)=>{
+                            const dl = deals.find(d=>d.id===t.dealId);
+                            return <div key={t.id} style={{ padding:"10px 14px",borderBottom:i<grouped[name].length-1?`1px solid ${theme.brd2}`:"none",display:"flex",alignItems:"center",gap:10 }}>
+                              <div style={{ flex:1,minWidth:0 }}>
+                                <div style={{ fontSize:13,fontWeight:600,color:theme.tx3,textDecoration:"line-through" }}>{t.title}</div>
+                                <div style={{ fontSize:10,color:theme.tx3,marginTop:2 }}>
+                                  {dl&&!dl.isMisc?dl.name:""}
+                                  {t.completedAt&&<span>{dl&&!dl.isMisc?" · ":""}{new Date(t.completedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>}
+                                </div>
+                              </div>
+                              <button onClick={()=>setStatus(t.id,"active")} style={{ background:theme.chip,border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:700,color:theme.accent,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",flexShrink:0 }}>Restore</button>
+                              <ConfirmBtn label="×" confirmLabel="?" onConfirm={()=>save({tasks:data.current.tasks.filter(x=>x.id!==t.id)})} style={{ background:"none",border:"none",color:theme.tx3,fontSize:16,cursor:"pointer",padding:"4px 6px",flexShrink:0 }}/>
+                            </div>;
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>}
+                </div>;
+              })()}
+            </div>
+            <div style={{ marginTop:24 }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+                <h3 style={{ margin:0,fontSize:14,fontWeight:700,color:theme.tx2,textTransform:"uppercase",letterSpacing:".05em" }}>Backup</h3>
+              </div>
+              <div style={{ display:"flex",gap:8 }}>
+                <button onClick={()=>setShowBackup(!showBackup)} style={{ flex:1,padding:14,background:theme.accent,border:"none",borderRadius:12,fontSize:14,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>{showBackup?"Hide Backup":"Export Data"}</button>
+                <label style={{ flex:1,padding:14,background:theme.btn2,border:"none",borderRadius:12,fontSize:14,fontWeight:600,color:theme.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  Import Data
+                  <input type="file" accept=".json" style={{ display:"none" }} onChange={e=>{
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                      try {
+                        const d = JSON.parse(ev.target.result);
+                        if (!d.clients || !d.tasks) { alert("Invalid backup file."); return; }
+                        save({
+                          clients: d.clients||[],
+                          deals: d.deals||[],
+                          tasks: d.tasks||[],
+                          associates: d.associates||["Unassigned"],
+                          dark: d.dark||false,
+                          quickTasks: d.quickTasks||[],
+                          templates: d.templates||[],
+                          reminders: d.reminders||[],
+                          teamRoles: d.teamRoles||{},
+                          teamNotes: d.teamNotes||{},
+                          clientNotes: d.clientNotes||{},
+                        });
+                      } catch { alert("Could not read file."); }
+                    };
+                    reader.readAsText(file);
+                    e.target.value = "";
+                  }}/>
+                </label>
+              </div>
+              {showBackup&&<div style={{ marginTop:10 }}>
+                <div style={{ fontSize:11,color:theme.tx3,marginBottom:6 }}>Tap "Select All" then "Copy" — or manually select the text and copy.</div>
+                <div style={{ display:"flex",gap:8,marginBottom:6 }}>
+                  <button onClick={()=>{const ta=document.getElementById("backup-ta");if(ta){ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);}}} style={{ flex:1,padding:10,background:theme.chip,border:"none",borderRadius:8,fontSize:12,fontWeight:600,color:theme.tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:36 }}>Select All</button>
+                  <button onClick={()=>{const ta=document.getElementById("backup-ta");if(ta){ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);try{document.execCommand("copy");alert("Copied!");}catch(e){alert("Text selected — now tap Copy from the popup.");}}}} style={{ flex:1,padding:10,background:theme.accent,border:"none",borderRadius:8,fontSize:12,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:36 }}>Copy</button>
+                </div>
+                <textarea id="backup-ta" readOnly value={JSON.stringify(data.current,null,2)} style={{ width:"100%",minHeight:120,maxHeight:200,padding:10,borderRadius:10,border:`1px solid ${theme.brd}`,background:theme.inpBg||theme.card,color:theme.tx,fontSize:11,fontFamily:"'JetBrains Mono',monospace",resize:"vertical",boxSizing:"border-box" }} onFocus={e=>e.target.select()}/>
+              </div>}
+              <div style={{ fontSize:11,color:theme.tx3,marginTop:6,lineHeight:1.4 }}>Tap Export Data to reveal your backup. Copy and paste into Notes to save.</div>
+              <button onClick={()=>{setShowImport(!showImport);setImportText("");}} style={{ width:"100%",padding:12,marginTop:8,background:"none",border:`1px dashed ${theme.brd}`,borderRadius:10,fontSize:12,fontWeight:600,color:theme.tx3,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>{showImport?"Hide Paste Import":"📋 Paste Import"}</button>
+              {showImport&&<div style={{ marginTop:8 }}>
+                <div style={{ fontSize:11,color:theme.tx3,marginBottom:6 }}>Paste your backup JSON below, then tap Restore.</div>
+                <textarea value={importText} onChange={e=>setImportText(e.target.value)} placeholder="Paste backup JSON here..." style={{ width:"100%",minHeight:100,maxHeight:200,padding:10,borderRadius:10,border:`1px solid ${theme.brd}`,background:theme.inpBg||theme.card,color:theme.tx,fontSize:11,fontFamily:"'JetBrains Mono',monospace",resize:"vertical",boxSizing:"border-box" }}/>
+                <button onClick={()=>{
+                  try {
+                    const d = JSON.parse(importText.trim());
+                    if (!d.clients || !d.tasks) { alert("Invalid backup data."); return; }
+                    save({
+                      clients: d.clients||[],
+                      deals: d.deals||[],
+                      tasks: d.tasks||[],
+                      associates: d.associates||["Unassigned"],
+                      dark: d.dark||false,
+                      quickTasks: d.quickTasks||[],
+                      templates: d.templates||[],
+                      reminders: d.reminders||[],
+                          teamRoles: d.teamRoles||{},
+                          teamNotes: d.teamNotes||{},
+                          clientNotes: d.clientNotes||{},
+                    });
+                    setShowImport(false);
+                    setImportText("");
+                    alert("Data restored!");
+                  } catch { alert("Could not parse. Make sure you pasted the full JSON."); }
+                }} style={{ width:"100%",padding:12,marginTop:6,background:importText.trim()?theme.accent:theme.chip,border:"none",borderRadius:10,fontSize:13,fontWeight:600,color:importText.trim()?"#fff":theme.tx3,cursor:importText.trim()?"pointer":"default",fontFamily:"'DM Sans',sans-serif",minHeight:40,opacity:importText.trim()?1:.5 }}>Restore Data</button>
+              </div>}
+            </div>
+            <div style={{ marginTop:24 }}>
+              <ConfirmBtn label="Clear All Data" confirmLabel="Tap again to confirm" onConfirm={()=>save({clients:[],deals:[],tasks:[],associates:["Unassigned"],quickTasks:[],templates:[],reminders:[]})} style={{ width:"100%",padding:14,background:theme.danger,border:"none",borderRadius:12,fontSize:14,fontWeight:600,color:theme.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}/>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── TAB BAR ── */}
+      <div style={{ background:theme.tab,borderTop:`1px solid ${theme.tabBrd}`,display:"flex",justifyContent:"space-around",paddingBottom:"max(6px,env(safe-area-inset-bottom,6px))",paddingTop:5,flexShrink:0 }}>
+        {[
+          {id:"checklist",l:"Checklist",svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>},
+          {id:"calendar",l:"Calendar",svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>},
+          {id:"clients",l:"Matters",svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>},
+          {id:"team",l:"Team",svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>},
+          {id:"settings",l:"Settings",svg:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>},
+        ].map(tab=>(
+          <button key={tab.id} onClick={()=>{setView(tab.id);if(tab.id!=="clients")setSelClient(null);if(tab.id!=="team")setSelAssociate(null);}} style={{ background:"none",border:"none",cursor:"pointer",padding:"4px 8px",display:"flex",flexDirection:"column",alignItems:"center",gap:2,color:view===tab.id?theme.tabA:theme.tabI,fontFamily:"'DM Sans',sans-serif",minHeight:44,WebkitTapHighlightColor:"transparent",position:"relative" }}>
+            <span style={{ position:"relative",display:"flex" }}>
+              {tab.svg}
+              {tab.id==="checklist"&&overdueT>0&&<span style={{ position:"absolute",top:-5,right:-8,background:"#FF3B30",color:"#fff",fontSize:8,fontWeight:800,fontFamily:"'JetBrains Mono',monospace",minWidth:14,height:14,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 3px" }}>{overdueT}</span>}
+            </span>
+            <span style={{ fontSize:9,fontWeight:600,letterSpacing:".02em" }}>{tab.l}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── SHEETS ── */}
+      <Sheet open={sheet==="client"} onClose={()=>setSheet(null)} title="New Client"><ClientForm onSave={addClient} onCancel={()=>setSheet(null)}/></Sheet>
+      <Sheet open={sheet==="editClient"} onClose={()=>{setSheet(null);setEditingClient(null);}} title="Rename Client"><ClientForm client={editingClient} onSave={n=>updateClient(editingClient.id,n)} onCancel={()=>{setSheet(null);setEditingClient(null);}}/></Sheet>
+      <Sheet open={sheet==="editDeal"} onClose={()=>{setSheet(null);setEditingDeal(null);}} title="Edit Matter"><DealForm deal={editingDeal} clients={clients} onSave={(n)=>updateDeal(editingDeal.id,n)} onCancel={()=>{setSheet(null);setEditingDeal(null);}}/></Sheet>
+      <Sheet open={sheet==="deal"} onClose={()=>setSheet(null)} title="New Matter"><DealForm clients={clients} defClient={preClient} onSave={addDeal} onCancel={()=>setSheet(null)}/></Sheet>
+      <Sheet open={sheet==="task"||sheet==="editTask"} onClose={()=>{setSheet(null);setEditingTask(null);setPreDeadline("");}} title={editingTask?.id?"Edit Task":"New Task"}>
+        <TaskForm task={editingTask} clients={clients} deals={deals} associates={associates} defClient={preClient} defDeal={preDeal} defDeadline={preDeadline}
+          onSave={saveTask}
+          onSaveTemplate={tmpl=>{save({templates:[...data.current.templates,{id:uid(),...tmpl}]});}}
+          onCancel={()=>{setSheet(null);setEditingTask(null);setPreDeadline("");}}/>
+      </Sheet>
+      <Sheet open={sheet==="associate"} onClose={()=>setSheet(null)} title="Add Attorney"><AssocForm onAdd={(n,role)=>{addAssociate(n,role);}} onClose={()=>setSheet(null)}/></Sheet>
+      <Sheet open={sheet==="quickTask"} onClose={()=>setSheet(null)} title="Quickies">
+        <QuickTasks allItems={quickTasks} viewDate={qtViewDate} onViewDateChange={setQtViewDate}
+          onAdd={text=>{save({quickTasks:[...data.current.quickTasks,{id:uid(),text,done:false,date:todayStr(),carriedOver:false}]});setSheet(null);}}
+          onToggle={id=>save({quickTasks:data.current.quickTasks.map(q=>q.id===id?{...q,done:!q.done}:q)})}
+          onDelete={id=>save({quickTasks:data.current.quickTasks.filter(q=>q.id!==id)})}
+          onClear={()=>save({quickTasks:data.current.quickTasks.filter(q=>!q.done||q.date!==todayStr())})}
+        />
+      </Sheet>
+      <Sheet open={sheet==="pickTemplate"} onClose={()=>setSheet(null)} title="★ Favorites">
+        {templates.length===0?(
+          <div style={{ textAlign:"center",padding:"24px 0",color:theme.tx2 }}>
+            <div style={{ fontSize:13 }}>No templates saved yet.</div>
+            <div style={{ fontSize:12,marginTop:4,color:theme.tx3 }}>Save one from the task form using "★ Save as Template".</div>
+          </div>
+        ):(
+          <div>
+            {templates.map(tmpl=>{
+              const cl=clients.find(c=>c.id===tmpl.clientId);
+              const dl=deals.find(d=>d.id===tmpl.dealId);
+              return (
+                <div key={tmpl.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:`1px solid ${theme.brd2}` }}>
+                  <div onClick={()=>{
+                    setPreClient(tmpl.clientId);
+                    setPreDeal(tmpl.dealId);
+                    setPreDeadline(todayStr());
+                    setEditingTask({...tmpl,id:null,status:"active",deadline:todayStr()});
+                    setSheet("task");
+                  }} style={{ flex:1,cursor:"pointer",minWidth:0 }}>
+                    <div style={{ fontSize:14,fontWeight:600,color:theme.tx }}>{tmpl.title}</div>
+                    <div style={{ fontSize:11,color:theme.tx2,marginTop:2,display:"flex",gap:6,flexWrap:"wrap" }}>
+                      {cl&&<span>{cl.name}</span>}
+                      {dl&&!dl.isMisc&&<span>· {dl.name}</span>}
+                      {tmpl.assignee!=="Unassigned"&&<span>· {tmpl.assignee}</span>}
+                    </div>
+                    {tmpl.notes&&<div style={{ fontSize:11,color:theme.tx3,marginTop:2, }}>{tmpl.notes}</div>}
+                  </div>
+                  <ConfirmBtn label="×" confirmLabel="?" onConfirm={()=>save({templates:data.current.templates.filter(t=>t.id!==tmpl.id)})} style={{ background:"none",border:"none",color:theme.tx3,fontSize:16,cursor:"pointer",padding:"8px",borderRadius:8,fontFamily:"'DM Sans',sans-serif",minWidth:36,minHeight:36,display:"flex",alignItems:"center",justifyContent:"center" }}/>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Sheet>
+      <Sheet open={sheet==="search"} onClose={()=>setSheet(null)} title="Search">
+        <SearchPanel clients={clients} deals={deals} tasks={tasks} associates={associates}
+          onSelectTask={task=>{setSheet(null);setView("checklist");setExpTask(task.id);}}
+          onSelectClient={id=>{setSheet(null);setView("clients");setSelClient(id);}}
+          onSelectAssociate={name=>{setSheet(null);setView("team");setSelAssociate(name);setTeamTab("tasks");}}
+        />
+      </Sheet>
+      <Sheet open={sheet==="reminder"} onClose={()=>setSheet(null)} title="New Reminder">
+        <ReminderForm onSave={r=>{save({reminders:[...data.current.reminders,{id:uid(),...r,done:false}]});setSheet(null);}} onCancel={()=>setSheet(null)}/>
+      </Sheet>
+    </div>
+    </Ctx.Provider>
+  );
+}
+
+/* ── Reminder Form ── */
+function ReminderForm({ onSave, onCancel }) {
+  const t = useT(); const inp = useInp();
+  const [text, setText] = useState("");
+  const [date, setDate] = useState(todayStr());
+  return <div>
+    <Label text="Reminder"><input style={inp} placeholder="e.g. Follow up with counsel" value={text} onChange={e=>setText(e.target.value)} autoFocus/></Label>
+    <Label text="Date"><input type="date" style={inp} value={date} onChange={e=>setDate(e.target.value)}/></Label>
+    <div style={{ display:"flex",gap:10,marginTop:8 }}>
+      <button onClick={onCancel} style={{ flex:1,padding:14,background:t.btn2,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>Cancel</button>
+      <button onClick={()=>text.trim()&&date&&onSave({text:text.trim(),date})} style={{ flex:1,padding:14,background:"#B8860B",border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,opacity:text.trim()&&date?1:.4 }}>Add Reminder</button>
+    </div>
+  </div>;
+}
+
+/* ── Search Panel ── */
+function SearchPanel({ clients, deals, tasks, associates, onSelectTask, onSelectClient, onSelectAssociate }) {
+  const t = useT(); const isDark = t.bg===T.dark.bg;
+  const [q, setQ] = useState("");
+  const query = q.trim().toLowerCase();
+
+  const matchedTasks = query ? tasks.filter(tk => {
+    const cl = clients.find(c=>c.id===tk.clientId)?.name||"";
+    const dl = deals.find(d=>d.id===tk.dealId)?.name||"";
+    return tk.title.toLowerCase().includes(query) || tk.notes?.toLowerCase().includes(query) ||
+      cl.toLowerCase().includes(query) || dl.toLowerCase().includes(query) ||
+      tk.assignee?.toLowerCase().includes(query);
+  }).slice(0, 15) : [];
+
+  const matchedClients = query ? clients.filter(c => c.name.toLowerCase().includes(query)).slice(0, 5) : [];
+  const matchedDeals = query ? deals.filter(d => !d.isMisc && d.name.toLowerCase().includes(query)).slice(0, 5) : [];
+  const matchedAssoc = query ? associates.filter(a => a !== "Unassigned" && a.toLowerCase().includes(query)).slice(0, 5) : [];
+
+  const noResults = query && matchedTasks.length === 0 && matchedClients.length === 0 && matchedDeals.length === 0 && matchedAssoc.length === 0;
+
+  return (
+    <div>
+      <input value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search tasks, clients, matters..."
+        style={{ width:"100%",padding:"11px 14px",border:`1.5px solid ${t.inp}`,borderRadius:10,fontSize:16,fontFamily:"'DM Sans',sans-serif",color:t.tx,background:t.inpBg,outline:"none",boxSizing:"border-box",WebkitAppearance:"none",marginBottom:12 }}/>
+
+      {!query&&<div style={{ textAlign:"center",padding:"20px 0",color:t.tx3,fontSize:13 }}>Type to search across everything.</div>}
+      {noResults&&<div style={{ textAlign:"center",padding:"20px 0",color:t.tx3,fontSize:13 }}>No results for "{q}"</div>}
+
+      {matchedClients.length>0&&<div style={{ marginBottom:12 }}>
+        <div style={{ fontSize:10,fontWeight:700,color:t.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>Clients</div>
+        {matchedClients.map(cl=>(
+          <div key={cl.id} onClick={()=>onSelectClient(cl.id)} style={{ padding:"10px 12px",marginBottom:4,background:t.card,borderRadius:10,cursor:"pointer",boxShadow:t.cardShadow }}>
+            <div style={{ fontSize:14,fontWeight:600,color:t.tx }}>{cl.name}</div>
+            {cl.isAdmin&&<div style={{ fontSize:11,color:t.tx3,fontStyle:"italic" }}>Administrative</div>}
+          </div>
+        ))}
+      </div>}
+
+      {matchedDeals.length>0&&<div style={{ marginBottom:12 }}>
+        <div style={{ fontSize:10,fontWeight:700,color:t.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>Matters</div>
+        {matchedDeals.map(dl=>{
+          const cl=clients.find(c=>c.id===dl.clientId);
+          return (
+            <div key={dl.id} onClick={()=>onSelectClient(dl.clientId)} style={{ padding:"10px 12px",marginBottom:4,background:t.card,borderRadius:10,cursor:"pointer",boxShadow:t.cardShadow }}>
+              <div style={{ fontSize:14,fontWeight:600,color:t.tx }}>{dl.name}</div>
+              {cl&&<div style={{ fontSize:11,color:t.tx2 }}>{cl.name}</div>}
+            </div>
+          );
+        })}
+      </div>}
+
+      {matchedAssoc.length>0&&<div style={{ marginBottom:12 }}>
+        <div style={{ fontSize:10,fontWeight:700,color:t.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>Associates</div>
+        {matchedAssoc.map(name=>(
+          <div key={name} onClick={()=>onSelectAssociate(name)} style={{ padding:"10px 12px",marginBottom:4,background:t.card,borderRadius:10,cursor:"pointer",boxShadow:t.cardShadow }}>
+            <div style={{ fontSize:14,fontWeight:600,color:t.tx }}>{name}</div>
+          </div>
+        ))}
+      </div>}
+
+      {matchedTasks.length>0&&<div>
+        <div style={{ fontSize:10,fontWeight:700,color:t.tx3,textTransform:"uppercase",letterSpacing:".05em",marginBottom:6 }}>Tasks</div>
+        {matchedTasks.map(task=>{
+          const cl=clients.find(c=>c.id===task.clientId);
+          const dl=deals.find(d=>d.id===task.dealId);
+          const sts=STATUSES[task.status];
+          const done=task.status==="complete";
+          return (
+            <div key={task.id} onClick={()=>onSelectTask(task)} style={{ padding:"10px 12px",marginBottom:4,background:task.flagged&&!done?(isDark?"#1A0A10":"#FFF0F0"):t.card,borderRadius:10,cursor:"pointer",boxShadow:t.cardShadow,opacity:done?.5:1,border:task.flagged&&!done?"1px solid #FF3B30":t.cardBorder,borderLeft:task.flagged&&!done?`3px solid #FF3B30`:undefined }}>
+              <div style={{ fontSize:14,fontWeight:600,color:done?t.tx3:task.flagged?"#FF3B30":t.tx,textDecoration:done?"line-through":"none" }}>{task.flagged&&!done?"🚩 ":""}{cl?`${cl.name} - `:""}{task.title}</div>
+              <div style={{ fontSize:11,color:t.tx2,marginTop:2,display:"flex",gap:6,alignItems:"center",flexWrap:"wrap" }}>
+                {dl&&!dl.isMisc&&<span>{dl.name}</span>}
+                <span style={{ color:sts?.color }}>{sts?.icon}</span>
+                {task.deadline&&task.deadline!=="N/A"&&<span>· {task.deadline.slice(5)}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>}
+    </div>
+  );
+}
+
+/* ── Drag Reorder List ── */
+function DragList({ items, renderItem, onReorder }) {
+  const t = useT();
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const [dragDelta, setDragDelta] = useState(0);
+  const rowRefs = useRef([]);
+  const dragState = useRef(null);
+
+  const handleDragStart = (idx, e) => {
+    e.preventDefault();
+    const el = rowRefs.current[idx];
+    if (!el) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const rowHeight = el.getBoundingClientRect().height + 8; // include margin
+
+    // Snapshot all original positions before any transforms
+    const positions = rowRefs.current.map(r => {
+      if (!r) return { top: 0, bottom: 0, mid: 0 };
+      const rr = r.getBoundingClientRect();
+      return { top: rr.top, bottom: rr.bottom, mid: rr.top + rr.height / 2 };
+    });
+
+    setDragIdx(idx);
+    setOverIdx(idx);
+    setDragDelta(0);
+    dragState.current = { idx, startY: y, rowHeight, positions };
+
+    const move = (ev) => {
+      ev.preventDefault();
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      setDragDelta(cy - y);
+      // Use snapshotted positions to determine target slot
+      const pos = dragState.current.positions;
+      let target = dragState.current.idx;
+      for (let i = 0; i < pos.length; i++) {
+        if (i === dragState.current.idx) continue;
+        if (cy >= pos[i].top && cy < pos[i].mid) { target = i; break; }
+        if (cy >= pos[i].mid && cy <= pos[i].bottom) { target = i; break; }
+      }
+      // Also handle above first / below last
+      if (pos.length > 0) {
+        if (cy < pos[0].mid) target = 0;
+        if (cy > pos[pos.length - 1].mid) target = pos.length - 1;
+      }
+      setOverIdx(target);
+    };
+    const up = () => {
+      document.removeEventListener("touchmove", move);
+      document.removeEventListener("touchend", up);
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+      const from = dragState.current?.idx;
+      dragState.current = null;
+      setDragDelta(0);
+      setDragIdx(null);
+      setOverIdx(prev => {
+        if (prev !== null && prev !== from && from !== null) {
+          setTimeout(() => onReorder(from, prev), 0);
+        }
+        return null;
+      });
+    };
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("touchend", up);
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+  };
+
+  return <div style={{ position:"relative" }}>
+    {items.map((item, idx) => {
+      const isDragging = dragIdx === idx;
+      const dragging = dragIdx !== null;
+      let shift = 0;
+      if (dragging && !isDragging && overIdx !== null && dragIdx !== null) {
+        const rh = dragState.current?.rowHeight || 0;
+        if (dragIdx < overIdx && idx > dragIdx && idx <= overIdx) shift = -rh;
+        if (dragIdx > overIdx && idx < dragIdx && idx >= overIdx) shift = rh;
+      }
+      return <div key={item.id || idx} ref={el => rowRefs.current[idx] = el} style={{
+        position: "relative",
+        zIndex: isDragging ? 50 : 1,
+        transform: isDragging
+          ? `translateY(${dragDelta}px) scale(1.02)`
+          : shift ? `translateY(${shift}px)` : "none",
+        transition: isDragging ? "transform 0s, box-shadow 0.2s" : dragging ? "transform 0.25s cubic-bezier(.2,.8,.4,1)" : "none",
+        boxShadow: isDragging ? "0 12px 40px rgba(0,0,0,0.25)" : "none",
+        borderRadius: 12,
+        opacity: isDragging ? 0.95 : 1,
+        outline: isDragging ? `2px solid ${t.accent}` : "none",
+        outlineOffset: isDragging ? -1 : 0,
+      }}>
+        {renderItem(item, idx, (e) => handleDragStart(idx, e))}
+      </div>;
+    })}
+  </div>;
+}
+
+/* ── Sub-items checklist ── */
+function SubItems({ items, onUpdate }) {
+  const t = useT();
+  const subs = items||[];
+  const toggle = (idx) => { const n=[...subs]; n[idx]={...n[idx],done:!n[idx].done}; onUpdate(n); };
+  const add = (text) => { onUpdate([...subs, {id:uid(),text,done:false}]); };
+  const remove = (idx) => { onUpdate(subs.filter((_,i)=>i!==idx)); };
+  const reorder = (from, to) => { const n=[...subs]; const [moved]=n.splice(from,1); n.splice(to,0,moved); onUpdate(n); };
+  return <div style={{ padding:"6px 14px 10px",borderTop:`1px solid ${t.brd2}` }}>
+    <DragList items={subs.map((s,i)=>({...s,_idx:i}))} onReorder={reorder} renderItem={(s, idx, onDragStart) => (
+      <div style={{ display:"flex",alignItems:"center",gap:5,padding:"4px 0" }}>
+        <button onClick={()=>toggle(s._idx)} style={{ background:"none",border:"none",fontSize:12,cursor:"pointer",color:s.done?"#30D158":"#999",padding:0,flexShrink:0,minWidth:20,minHeight:20,display:"flex",alignItems:"center",justifyContent:"center" }}>{s.done?"●":"○"}</button>
+        <span style={{ fontSize:11,color:s.done?t.tx3:t.tx,textDecoration:s.done?"line-through":"none",flex:1 }}>{s.text}</span>
+        <button onClick={()=>remove(s._idx)} style={{ background:"none",border:"none",color:t.tx3,fontSize:10,cursor:"pointer",padding:"2px 4px",flexShrink:0 }}>×</button>
+        {onDragStart&&<div onTouchStart={e=>{e.stopPropagation();onDragStart(e);}} onMouseDown={e=>{e.stopPropagation();onDragStart(e);}} style={{
+          flexShrink:0,padding:"3px 2px",cursor:"grab",touchAction:"none",userSelect:"none",WebkitUserSelect:"none",
+          display:"flex",flexDirection:"column",gap:1,alignItems:"center",
+        }}>
+          <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/></div>
+          <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/></div>
+        </div>}
+      </div>
+    )}/>
+    <div style={{ marginTop:4 }}>
+      <input placeholder="+ Add sub-item" onKeyDown={e=>{if(e.key==="Enter"&&e.target.value.trim()){add(e.target.value.trim());e.target.value="";}}} style={{ width:"100%",padding:"6px 8px",borderRadius:6,border:`1px solid ${t.brd}`,background:t.inpBg||t.card,color:t.tx,fontSize:11,fontFamily:"'DM Sans',sans-serif",boxSizing:"border-box",outline:"none" }}/>
+    </div>
+  </div>;
+}
+
+/* ── Flat Task Row ── */
+function FlatTaskRow({ task, clientName, dealName, exp, onTog, menu, onTogMenu, onSetStatus, onToggleFlag, onEdit, onDel, onDragStart, hideDue, onUpdateSubs }) {
+  const t = useT(); const isDark = t.bg===T.dark.bg;
+  const sts = STATUSES[task.status];
+  const late = task.status!=="complete"&&daysUntil(task.deadline)!==null&&daysUntil(task.deadline)<0;
+  const done = task.status==="complete";
+  const flagged = task.flagged&&!done;
+  const subs = task.subItems||[];
+  const subProgress = subs.length>0?`${subs.filter(s=>s.done).length}/${subs.length}`:"";
+
+  return (
+    <div style={{ background:flagged?(isDark?"#1A0A10":"#FFF0F0"):late?(isDark?"#1A0A10":"#FFF0F0"):t.card,borderRadius:8,marginBottom:4,border:late?`1.5px solid ${isDark?"#FF3B30":"#1A1A2E"}`:flagged?`1px solid #FF3B30`:t.cardBorder,boxShadow:late?t.cardShadowOverdue:t.cardShadow,opacity:done?.45:1,overflow:"hidden",transition:"all .2s",borderLeft:flagged?`3px solid #FF3B30`:late?`3px solid #FF3B30`:undefined }}>
+      <div onClick={onTog} style={{ padding:"7px 8px 7px 10px",display:"flex",alignItems:"center",gap:4,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+        <button onClick={e=>{e.stopPropagation();onSetStatus(done?"active":"complete");}} style={{ background:"none",border:"none",fontSize:14,cursor:"pointer",color:done?"#30D158":flagged?"#FF3B30":"#999",padding:0,flexShrink:0,minWidth:24,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>{done?"●":"○"}</button>
+        <div style={{ flex:1,minWidth:0 }}>
+          <div style={{ fontSize:12,fontWeight:600,color:done?t.tx3:flagged?"#FF3B30":t.tx,textDecoration:done?"line-through":"none",transition:"color .2s" }}>{flagged?"🚩 ":""}{clientName?`${clientName} - `:""}{task.title}{subProgress&&<span style={{ fontSize:10,color:t.tx3,marginLeft:4 }}>({subProgress})</span>}</div>
+        </div>
+        {!hideDue&&<div style={{ flexShrink:0,marginLeft:2 }}><DueBadge date={task.deadline}/></div>}
+        {onToggleFlag&&<button onClick={e=>{e.stopPropagation();onToggleFlag();}} style={{ background:"none",border:"none",fontSize:12,cursor:"pointer",color:task.flagged?"#FF3B30":t.tx3,padding:"2px 4px",flexShrink:0,minWidth:22,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>{task.flagged?"🚩":"🏳"}</button>}
+        {onTogMenu&&<button onClick={e=>{e.stopPropagation();onTogMenu();}} style={{ background:"none",border:"none",fontSize:11,cursor:"pointer",color:t.tx3,padding:"2px 4px",flexShrink:0,minWidth:22,minHeight:24,display:"flex",alignItems:"center",justifyContent:"center" }}>🖊️</button>}
+        {onDragStart&&<div onTouchStart={e=>{e.stopPropagation();onDragStart(e);}} onMouseDown={e=>{e.stopPropagation();onDragStart(e);}} style={{
+          flexShrink:0,marginLeft:1,padding:"4px 2px",cursor:"grab",touchAction:"none",userSelect:"none",WebkitUserSelect:"none",
+          display:"flex",flexDirection:"column",gap:1,alignItems:"center",
+        }}>
+          <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/></div>
+          <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/></div>
+          <div style={{ display:"flex",gap:1.5 }}><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/><div style={{ width:2,height:2,borderRadius:1,background:t.tx3 }}/></div>
+        </div>}
+      </div>
+      {menu&&<div style={{ padding:"6px 12px 10px",borderTop:`1px solid ${t.brd2}` }}>
+        {task.notes&&<p style={{ fontSize:11,color:t.tx2,lineHeight:1.4,margin:"4px 0 8px" }}>{task.notes}</p>}
+        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
+          {Object.entries(STATUSES).map(([k,v])=>(
+            <button key={k} onClick={()=>onSetStatus(k)} style={{
+              padding:"5px 10px",borderRadius:6,border:"none",fontSize:11,fontWeight:600,cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:4,
+              background:task.status===k?`${v.color}20`:t.chip,
+              color:task.status===k?v.color:t.tx3,
+              outline:task.status===k?`2px solid ${v.color}`:"none",
+            }}><span style={{ fontSize:12 }}>{v.icon}</span>{v.label}</button>
+          ))}
+          <button onClick={onEdit} style={{ padding:"5px 10px",borderRadius:6,border:"none",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",background:t.btn2,color:t.btn2Tx }}>Edit</button>
+          <ConfirmBtn label="Delete" confirmLabel="Sure?" onConfirm={onDel} style={{ padding:"5px 10px",borderRadius:6,border:"none",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",background:t.danger,color:t.dangerTx }}/>
+        </div>
+      </div>}
+      {exp&&onUpdateSubs&&<SubItems items={subs} onUpdate={onUpdateSubs}/>}
+    </div>
+  );
+}
+
+/* ── Draggable Task List (for Matters tab reordering) ── */
+function ReorderTaskList({ tasks: rawTasks, dealId, expTask, setExpTask, onCycle, onSetStatus, onEdit, onDel, onReorder }) {
+  const t = useT(); const isDark = t.bg===T.dark.bg;
+  const sorted = [...rawTasks].sort((a,b)=>(a.order||0)-(b.order||0));
+
+  const handleReorder = (fromIdx, toIdx) => {
+    const newArr = [...sorted];
+    const [moved] = newArr.splice(fromIdx, 1);
+    newArr.splice(toIdx, 0, moved);
+    onReorder(dealId, newArr.map(t=>t.id));
+  };
+
+  return (
+    <DragList items={sorted} onReorder={handleReorder} renderItem={(task, idx, onDragStart) => {
+      const sts=STATUSES[task.status];
+      const late=task.status!=="complete"&&daysUntil(task.deadline)!==null&&daysUntil(task.deadline)<0;
+      const isExp=expTask===task.id;
+      const flagged=task.flagged&&task.status!=="complete";
+      return (
+        <div style={{ borderBottom:`1px solid ${t.brd2}`,opacity:task.status==="complete"?.5:1,background:flagged?(isDark?"#1A0A10":"#FFF0F0"):late?t.overdue:t.card,borderLeft:flagged?`3px solid #FF3B30`:"none" }}>
+          <div style={{ display:"flex",alignItems:"center",padding:"0" }}>
+            <div onClick={()=>setExpTask(isExp?null:task.id)} style={{ flex:1,padding:"12px 12px 12px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",WebkitTapHighlightColor:"transparent" }}>
+              <button onClick={e=>{e.stopPropagation();onCycle(task.id);}} style={{ background:"none",border:"none",fontSize:22,cursor:"pointer",color:sts.color,padding:0,flexShrink:0,minWidth:36,minHeight:36,display:"flex",alignItems:"center",justifyContent:"center" }}>{sts.icon}</button>
+              <div style={{ flex:1,minWidth:0 }}>
+                <div style={{ fontSize:14,fontWeight:600,color:flagged?"#FF3B30":t.tx,textDecoration:task.status==="complete"?"line-through":"none", }}>{flagged?"🚩 ":""}{task.title}</div>
+                <div style={{ display:"flex",gap:8,alignItems:"center",marginTop:3,flexWrap:"wrap" }}>
+                  {task.assignee!=="Unassigned"&&<span style={{ fontSize:11,color:t.tx2 }}>{task.assignee}</span>}
+                </div>
+              </div>
+              <div style={{ flexShrink:0 }}><DueBadge date={task.deadline}/></div>
+            </div>
+            {sorted.length>1&&<div onTouchStart={e=>{e.stopPropagation();onDragStart(e);}} onMouseDown={e=>{e.stopPropagation();onDragStart(e);}} style={{
+              flexShrink:0,padding:"12px 12px 12px 4px",cursor:"grab",touchAction:"none",userSelect:"none",WebkitUserSelect:"none",
+              display:"flex",flexDirection:"column",gap:2,alignItems:"center",
+            }}>
+              <div style={{ display:"flex",gap:2 }}><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/></div>
+              <div style={{ display:"flex",gap:2 }}><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/></div>
+              <div style={{ display:"flex",gap:2 }}><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/><div style={{ width:3,height:3,borderRadius:2,background:t.tx3 }}/></div>
+            </div>}
+          </div>
+          {isExp&&<div style={{ padding:"0 16px 12px" }}>
+            {task.notes&&<p style={{ fontSize:13,color:t.tx2,lineHeight:1.5,margin:"4px 0 10px" }}>{task.notes}</p>}
+            <div style={{ display:"flex",gap:6,flexWrap:"wrap",marginBottom:12 }}>
+              {Object.entries(STATUSES).map(([k,v])=>(
+                <button key={k} onClick={()=>onSetStatus(task.id,k)} style={{
+                  padding:"6px 12px",borderRadius:8,border:"none",fontSize:12,fontWeight:600,cursor:"pointer",
+                  fontFamily:"'DM Sans',sans-serif",minHeight:32,display:"flex",alignItems:"center",gap:5,
+                  background:task.status===k?`${v.color}20`:t.chip,color:task.status===k?v.color:t.tx3,
+                  outline:task.status===k?`2px solid ${v.color}`:"none",
+                }}><span style={{ fontSize:14 }}>{v.icon}</span>{v.label}</button>
+              ))}
+            </div>
+            <div style={{ display:"flex",gap:8,justifyContent:"flex-end" }}>
+              <button onClick={()=>onEdit(task)} style={{ background:t.btn2,border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:40 }}>Edit</button>
+              <button onClick={()=>onDel(task.id)} style={{ background:t.danger,border:"none",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:600,color:t.dangerTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:40 }}>Delete</button>
+            </div>
+          </div>}
+        </div>
+      );
+    }}/>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ══ FORMS                                                  ══ */
+/* ═══════════════════════════════════════════════════════════ */
+function ClientForm({ client, onSave, onCancel }) {
+  const t=useT(); const inp=useInp();
+  const [name,setN]=useState(client?.name||"");
+  return <div>
+    <Label text="Client Name"><input style={inp} placeholder="e.g. Acme Corp" value={name} onChange={e=>setN(e.target.value)} autoFocus/></Label>
+    <div style={{ display:"flex",gap:10,marginTop:8 }}>
+      <button onClick={onCancel} style={{ flex:1,padding:14,background:t.btn2,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>Cancel</button>
+      <button onClick={()=>name.trim()&&onSave(name.trim())} style={{ flex:1,padding:14,background:t.btn,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btnTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,opacity:name.trim()?1:.4 }}>{client?"Save":"Add Client"}</button>
+    </div>
+  </div>;
+}
+
+function DealForm({ deal, clients, defClient, onSave, onCancel }) {
+  const t=useT(); const inp=useInp(); const sel=useSel();
+  const [name,setN]=useState(deal?.name||""); const [cid,setCid]=useState(deal?.clientId||defClient||clients[0]?.id||"");
+  return <div>
+    {!deal&&<Label text="Client"><select style={sel} value={cid} onChange={e=>setCid(e.target.value)}>{clients.length===0&&<option value="">No clients</option>}{[...clients].sort((a,b)=>{if(a.isAdmin&&!b.isAdmin)return -1;if(!a.isAdmin&&b.isAdmin)return 1;return a.name.localeCompare(b.name);}).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Label>}
+    <Label text="Matter Name"><input style={inp} placeholder="e.g. Series B Financing" value={name} onChange={e=>setN(e.target.value)} autoFocus/></Label>
+    <div style={{ display:"flex",gap:10,marginTop:8 }}>
+      <button onClick={onCancel} style={{ flex:1,padding:14,background:t.btn2,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>Cancel</button>
+      <button onClick={()=>name.trim()&&(deal||cid)&&onSave(name.trim(),cid)} style={{ flex:1,padding:14,background:t.btn,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btnTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,opacity:name.trim()?1:.4 }}>{deal?"Save":"Add Matter"}</button>
+    </div>
+  </div>;
+}
+
+function TaskForm({ task, clients, deals, associates, defClient, defDeal, defDeadline, onSave, onSaveTemplate, onCancel }) {
+  const t=useT(); const inp=useInp(); const sel=useSel();
+  const [title,setTitle]=useState(task?.title||"");
+  const [notes,setNotes]=useState(task?.notes||"");
+  const [sts,setSts]=useState(task?.status||"active");
+  const [who,setWho]=useState(task?.assignee||"Unassigned");
+  const [due,setDue]=useState(task?.deadline||defDeadline||"");
+  const [tmplSaved,setTmplSaved]=useState(false);
+
+  const initClient = task?.clientId||defClient||clients[0]?.id||"";
+  const getMiscId = (cid) => deals.find(d=>d.clientId===cid&&d.isMisc)?.id||"";
+  const initDeal = task?.dealId||defDeal||(initClient?getMiscId(initClient):"");
+
+  const [cid,setCid]=useState(initClient);
+  const [did,setDid]=useState(initDeal);
+
+  const avail=deals.filter(d=>d.clientId===cid);
+  const regularDeals=avail.filter(d=>!d.isMisc).sort((a,b)=>a.name.localeCompare(b.name));
+  const miscDeal=avail.find(d=>d.isMisc);
+  const sortedDeals=[...regularDeals,...(miscDeal?[miscDeal]:[])];
+
+  const chgClient=v=>{
+    setCid(v);
+    // Default to Misc deal of new client
+    const newMisc = deals.find(d=>d.clientId===v&&d.isMisc);
+    setDid(newMisc?.id||"");
+  };
+
+  return <div>
+    <Label text="Client"><select style={sel} value={cid} onChange={e=>chgClient(e.target.value)}>{clients.length===0&&<option value="">No clients</option>}{[...clients].sort((a,b)=>{if(a.isAdmin&&!b.isAdmin)return -1;if(!a.isAdmin&&b.isAdmin)return 1;return a.name.localeCompare(b.name);}).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Label>
+    <Label text="Matter"><select style={sel} value={did} onChange={e=>setDid(e.target.value)}>
+      {sortedDeals.map(d=><option key={d.id} value={d.id}>{d.isMisc?"Miscellaneous":d.name}</option>)}
+    </select></Label>
+    <Label text="Task"><input style={inp} placeholder="e.g. Draft SPA" value={title} onChange={e=>setTitle(e.target.value)}/></Label>
+    <Label text="Notes"><textarea style={{...inp,minHeight:56,resize:"vertical"}} placeholder="Additional context..." value={notes} onChange={e=>setNotes(e.target.value)}/></Label>
+    <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
+      <Label text="Status"><select style={sel} value={sts} onChange={e=>setSts(e.target.value)}>{Object.entries(STATUSES).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select></Label>
+      <Label text="Current Owner"><select style={sel} value={who} onChange={e=>setWho(e.target.value)}>
+        <option value="Unassigned">Unassigned</option>
+        <option value="Client">Client</option>
+        <option value="Counterparty">Counterparty</option>
+        {associates.filter(a=>a!=="Unassigned").sort((a,b)=>a.localeCompare(b)).length>0&&<option disabled>──────</option>}
+        {associates.filter(a=>a!=="Unassigned").sort((a,b)=>a.localeCompare(b)).map(a=><option key={a} value={a}>{a}</option>)}
+      </select></Label>
+      <Label text="Deadline">
+        <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+          <input type="date" style={{...inp,flex:1,opacity:due==="N/A"?.35:1}} value={due==="N/A"?"":due} onChange={e=>{setDue(e.target.value);}} disabled={due==="N/A"}/>
+          <button onClick={()=>setDue(due==="N/A"?"":"N/A")} style={{
+            padding:"8px 12px",borderRadius:10,border:"none",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",flexShrink:0,minHeight:40,
+            background:due==="N/A"?`${t.tx3}20`:t.chip,color:due==="N/A"?t.tx:t.tx3,
+          }}>N/A</button>
+        </div>
+      </Label>
+    </div>
+    <div style={{ display:"flex",gap:10,marginTop:8 }}>
+      <button onClick={onCancel} style={{ flex:1,padding:14,background:t.btn2,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>Cancel</button>
+      <button onClick={()=>title.trim()&&cid&&did&&onSave({title:title.trim(),notes:notes.trim(),status:sts,assignee:who,deadline:due,clientId:cid,dealId:did})} style={{ flex:1,padding:14,background:t.btn,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btnTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,opacity:title.trim()&&cid&&did?1:.4 }}>{task?.id?"Save":"Add Task"}</button>
+    </div>
+    {onSaveTemplate&&title.trim()&&<button onClick={()=>{if(!tmplSaved){onSaveTemplate({title:title.trim(),notes:notes.trim(),assignee:who,clientId:cid,dealId:did});setTmplSaved(true);}}} style={{ width:"100%",padding:"10px",marginTop:8,background:tmplSaved?"#30D15815":"none",border:`1px dashed ${tmplSaved?"#30D158":t.brd}`,borderRadius:10,fontSize:12,fontWeight:600,color:tmplSaved?"#30D158":t.tx3,cursor:tmplSaved?"default":"pointer",fontFamily:"'DM Sans',sans-serif" }}>{tmplSaved?"★ Saved to Favorites":"★ Save as Favorite"}</button>}
+  </div>;
+}
+
+function AssocForm({ onAdd, onClose }) {
+  const t=useT(); const inp=useInp(); const sel=useSel();
+  const [name,setN]=useState("");
+  const [role,setRole]=useState("Associate");
+  return <div>
+    <Label text="Attorney Name"><input style={inp} placeholder="e.g. Sarah Chen" value={name} onChange={e=>setN(e.target.value)} autoFocus/></Label>
+    <Label text="Designation"><select style={sel} value={role} onChange={e=>setRole(e.target.value)}>
+      <option value="Partner">Partner</option>
+      <option value="Counsel">Counsel</option>
+      <option value="Associate">Associate</option>
+    </select></Label>
+    <div style={{ display:"flex",gap:10 }}>
+      <button onClick={onClose} style={{ flex:1,padding:14,background:t.btn2,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btn2Tx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48 }}>Done</button>
+      <button onClick={()=>{if(name.trim()){onAdd(name.trim(),role);setN("");setRole("Associate");}}} style={{ flex:1,padding:14,background:t.btn,border:"none",borderRadius:12,fontSize:15,fontWeight:600,color:t.btnTx,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minHeight:48,opacity:name.trim()?1:.4 }}>Add</button>
+    </div>
+  </div>;
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
